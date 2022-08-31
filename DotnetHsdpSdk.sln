@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32228.430
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetHsdpSdk", "DotnetHsdpSdk\DotnetHsdpSdk.csproj", "{CDB508A8-3F06-496A-BD32-E57CF8B25CF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotnetHsdpSdk", "DotnetHsdpSdk\DotnetHsdpSdk.csproj", "{CDB508A8-3F06-496A-BD32-E57CF8B25CF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotnetHsdpSdkTests", "DotnetHsdpSdkTests\DotnetHsdpSdkTests.csproj", "{20D7B3A5-F620-416D-B9E3-93A4706B93CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{CDB508A8-3F06-496A-BD32-E57CF8B25CF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDB508A8-3F06-496A-BD32-E57CF8B25CF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDB508A8-3F06-496A-BD32-E57CF8B25CF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20D7B3A5-F620-416D-B9E3-93A4706B93CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20D7B3A5-F620-416D-B9E3-93A4706B93CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20D7B3A5-F620-416D-B9E3-93A4706B93CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20D7B3A5-F620-416D-B9E3-93A4706B93CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

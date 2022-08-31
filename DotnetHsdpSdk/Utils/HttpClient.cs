@@ -5,9 +5,15 @@ using System.Threading.Tasks;
 
 namespace DotnetHsdpSdk.Utils
 {
-    internal static class Http
+    public interface IHttp
     {
-        public static async Task<string> HttpSendRequest(HttpRequestMessage request)
+        Task<string> HttpSendRequest(HttpRequestMessage request);
+        Task<T> HttpSendRequest<T>(HttpRequestMessage request);
+    }
+
+    internal class Http : IHttp
+    {
+        public async Task<string> HttpSendRequest(HttpRequestMessage request)
         {
             using var client = new HttpClient();
             var response = await client.SendAsync(request);
@@ -19,7 +25,7 @@ namespace DotnetHsdpSdk.Utils
             return await response.Content.ReadAsStringAsync();
         }
 
-        public static async Task<T> HttpSendRequest<T>(HttpRequestMessage request)
+        public async Task<T> HttpSendRequest<T>(HttpRequestMessage request)
         {
             var json = await HttpSendRequest(request);
             try

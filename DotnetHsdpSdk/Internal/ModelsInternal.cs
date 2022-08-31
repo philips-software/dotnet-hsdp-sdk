@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
+[assembly:InternalsVisibleTo("DotnetHsdpSdkTests")]
 namespace DotnetHsdpSdk.Internal
 {
     internal class IamToken : IIamToken
