@@ -10,9 +10,9 @@ namespace DotnetHsdpSdkTests.API
     [TestFixture]
     public class HsdpIamTests
     {
-        private const string Username = "TestUsername";
-        private const string Password = "TestPassword";
-        
+        private readonly IamUserLoginRequest userLogin = new("testusername", "testpassword");
+        private readonly IamServiceLoginRequest serviceLogin = new("testservicekey", "testserviceaudience", "testserviceid");
+
         private const string TokenPath = "authorize/oauth2/token";
         private const string RevokePath = "authorize/oauth2/revoke";
         private const string IntrospectPath = "authorize/oauth2/introspect";
@@ -32,6 +32,7 @@ namespace DotnetHsdpSdkTests.API
 
         private Mock<IHttpRequester> http = null!;
         private Mock<IHsdpIamRequestFactory> requestFactory = null!;
+        private Mock<IHsdpIamRequest> request = null!;
         private HsdpIam iam = null!;
 
         [SetUp]
@@ -39,6 +40,7 @@ namespace DotnetHsdpSdkTests.API
         {
             http = new Mock<IHttpRequester>();
             requestFactory = new Mock<IHsdpIamRequestFactory>();
+            request = new Mock<IHsdpIamRequest>();
 
             iam = new HsdpIam(http.Object, requestFactory.Object);
         }
@@ -46,11 +48,7 @@ namespace DotnetHsdpSdkTests.API
         [Test]
         public async Task UserLoginShouldHttpRequestWithBasicAuth()
         {
-            var userLogin = new IamUserLoginRequest(Username, Password);
-
-            var request = new Mock<IHsdpIamRequest>();
             requestFactory.Setup(f => f.CreateUserLoginRequestContent(userLogin)).Returns(request.Object);
-
             http.Setup(h => h.HttpRequestWithBasicAuth<TokenResponse>(request.Object, TokenPath)).ReturnsAsync(tokenResponse);
 
             await iam.UserLogin(userLogin);
@@ -61,14 +59,32 @@ namespace DotnetHsdpSdkTests.API
         [Test]
         public async Task UserLoginShouldReturnToken()
         {
-            var userLogin = new IamUserLoginRequest(Username, Password);
-
-            var request = new Mock<IHsdpIamRequest>();
             requestFactory.Setup(f => f.CreateUserLoginRequestContent(userLogin)).Returns(request.Object);
-
             http.Setup(h => h.HttpRequestWithBasicAuth<TokenResponse>(request.Object, TokenPath)).ReturnsAsync(tokenResponse);
 
             var token = await iam.UserLogin(userLogin);
+
+            AssertToken(token);
+        }
+
+        [Test]
+        public async Task ServiceLoginShouldHttpRequestWithBasicAuth()
+        {
+            requestFactory.Setup(f => f.CreateServiceLoginRequestContent(serviceLogin)).Returns(request.Object);
+            http.Setup(h => h.HttpRequestWithBasicAuth<TokenResponse>(request.Object, TokenPath)).ReturnsAsync(tokenResponse);
+
+            await iam.ServiceLogin(serviceLogin);
+
+            http.Verify(h => h.HttpRequestWithBasicAuth<TokenResponse>(request.Object, TokenPath));
+        }
+
+        [Test]
+        public async Task ServiceLoginShouldReturnToken()
+        {
+            requestFactory.Setup(f => f.CreateServiceLoginRequestContent(serviceLogin)).Returns(request.Object);
+            http.Setup(h => h.HttpRequestWithBasicAuth<TokenResponse>(request.Object, TokenPath)).ReturnsAsync(tokenResponse);
+
+            var token = await iam.ServiceLogin(serviceLogin);
 
             AssertToken(token);
         }
