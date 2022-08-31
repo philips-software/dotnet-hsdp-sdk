@@ -22,6 +22,12 @@ namespace DotnetHsdpSdk.API
             this.configuration = configuration;
         }
 
+        public async Task<IIamToken> UserLogin(IamUserLoginRequest userLoginRequest)
+        {
+            var requestContent = CreateUserLoginRequestContent(userLoginRequest);
+            return await FetchIamToken(requestContent);
+        }
+
         public async Task<IIamToken> ServiceLogin(IamServiceLoginRequest serviceLoginRequest)
         {
             if (cachedServiceToken != null && !serviceLoginRequest.ForceRefetch)
@@ -35,7 +41,12 @@ namespace DotnetHsdpSdk.API
 
         private async Task<IamToken> FetchServiceLoginToken(IamServiceLoginRequest serviceLoginRequest)
         {
-            var requestContent = CreateRequestContent(serviceLoginRequest);
+            var requestContent = CreateServiceLoginRequestContent(serviceLoginRequest);
+            return await FetchIamToken(requestContent);
+        }
+
+        private async Task<IamToken> FetchIamToken(List<KeyValuePair<string, string>> requestContent)
+        {
             using var requestBody = new FormUrlEncodedContent(requestContent);
             using var request = new HttpRequestMessage(HttpMethod.Post, configuration.IamEndpoint);
             DecorateRequest(request, requestBody);
@@ -46,12 +57,22 @@ namespace DotnetHsdpSdk.API
             return new IamToken(accessToken, DateTime.UtcNow.AddMinutes(tokenResponse.expires_in));
         }
 
-        private static List<KeyValuePair<string, string>> CreateRequestContent(IamServiceLoginRequest serviceLoginRequest)
+        private static List<KeyValuePair<string, string>> CreateServiceLoginRequestContent(IamServiceLoginRequest serviceLoginRequest)
         {
             return new List<KeyValuePair<string, string>>
             {
                 new("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
                 new("assertion", GenerateJwtToken(serviceLoginRequest))
+            };
+        }
+
+        private static List<KeyValuePair<string, string>> CreateUserLoginRequestContent(IamUserLoginRequest userLoginRequest)
+        {
+            return new List<KeyValuePair<string, string>>
+            {
+                new("grant_type", "password"),
+                new("username", userLoginRequest.Username),
+                new("password", userLoginRequest.Password)
             };
         }
 

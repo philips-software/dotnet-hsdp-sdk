@@ -5,6 +5,7 @@ namespace DotnetHsdpSdk
 {
     public interface IHsdpIam
     {
+        Task<IIamToken> UserLogin(IamUserLoginRequest userLoginRequest);
         Task<IIamToken> ServiceLogin(IamServiceLoginRequest serviceLoginRequest);
     }
 
