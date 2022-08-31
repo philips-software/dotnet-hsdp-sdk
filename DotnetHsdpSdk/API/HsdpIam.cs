@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
 using DotnetHsdpSdk.Internal;
+using DotnetHsdpSdk.Utils;
 
 namespace DotnetHsdpSdk.API
 {
@@ -39,6 +40,18 @@ namespace DotnetHsdpSdk.API
             return cachedServiceToken;
         }
 
+        public async Task<IIamToken> RefreshToken(IIamToken token)
+        {
+            Validate.NotNull(token, nameof(token));
+            if (string.IsNullOrEmpty(token.RefreshToken))
+            {
+                throw new InvalidOperationException("Provided token cannot be refreshed. (RefreshToken is null or empty.)");
+            }
+
+            var requestContent = CreateRefreshRequestContent(token);
+            return await FetchIamToken(requestContent);
+        }
+
         private async Task<IamToken> FetchServiceLoginToken(IamServiceLoginRequest serviceLoginRequest)
         {
             var requestContent = CreateServiceLoginRequestContent(serviceLoginRequest);
@@ -54,7 +67,16 @@ namespace DotnetHsdpSdk.API
             var tokenResponse = await HttpGetTokenResponse(request);
 
             var accessToken = $"{tokenResponse.token_type} {tokenResponse.access_token}";
-            return new IamToken(accessToken, DateTime.UtcNow.AddMinutes(tokenResponse.expires_in));
+            return new IamToken(
+                accessToken: accessToken,
+                expiresUtc: DateTime.UtcNow.AddMinutes(tokenResponse.expires_in),
+                tokenType: tokenResponse.token_type,
+                scopes: tokenResponse.scopes,
+                idToken: tokenResponse.id_token,
+                signedToken: tokenResponse.signed_token,
+                issuedTokenType: tokenResponse.issued_token_type,
+                refreshToken: tokenResponse.refresh_token
+            );
         }
 
         private static List<KeyValuePair<string, string>> CreateServiceLoginRequestContent(IamServiceLoginRequest serviceLoginRequest)
@@ -73,6 +95,15 @@ namespace DotnetHsdpSdk.API
                 new("grant_type", "password"),
                 new("username", userLoginRequest.Username),
                 new("password", userLoginRequest.Password)
+            };
+        }
+
+        private static List<KeyValuePair<string, string>> CreateRefreshRequestContent(IIamToken token)
+        {
+            return new List<KeyValuePair<string, string>>
+            {
+                new("grant_type", "refresh_token"),
+                new("refresh_token", token.RefreshToken!),
             };
         }
 
