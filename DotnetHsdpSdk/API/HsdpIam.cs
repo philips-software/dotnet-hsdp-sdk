@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DotnetHsdpSdk.Internal;
 using DotnetHsdpSdk.Utils;
 
+[assembly: InternalsVisibleTo("DotnetHsdpSdkTests")]
 namespace DotnetHsdpSdk.API
 {
     public class HsdpIam : IHsdpIam
@@ -19,7 +21,7 @@ namespace DotnetHsdpSdk.API
         {
         }
 
-        public HsdpIam(IHttpRequester http, IHsdpIamRequestFactory hsdpIamRequestFactory)
+        internal HsdpIam(IHttpRequester http, IHsdpIamRequestFactory hsdpIamRequestFactory)
         {
             this.http = http;
             this.hsdpIamRequestFactory = hsdpIamRequestFactory;
