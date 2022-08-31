@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Authentication;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text.RegularExpressions;
@@ -16,7 +15,11 @@ namespace DotnetHsdpSdk.API
     public class HsdpIam : IHsdpIam
     {
         private readonly HsdpIamConfiguration configuration;
-        private IamToken? cachedServiceToken = null;
+
+        private const string TokenPath = "authorize/oauth2/token";
+        private const string RevokePath = "authorize/oauth2/revoke";
+        private const string IntrospectPath = "authorize/oauth2/introspect";
+        private const string UserInfoPath = "authorize/oauth2/userinfo";
 
         public HsdpIam(HsdpIamConfiguration configuration)
         {
@@ -26,57 +29,75 @@ namespace DotnetHsdpSdk.API
         public async Task<IIamToken> UserLogin(IamUserLoginRequest userLoginRequest)
         {
             var requestContent = CreateUserLoginRequestContent(userLoginRequest);
-            return await FetchIamToken(requestContent);
+            var tokenResponse = await HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath);
+            return CreateIamToken(tokenResponse);
         }
 
         public async Task<IIamToken> ServiceLogin(IamServiceLoginRequest serviceLoginRequest)
         {
-            if (cachedServiceToken != null && !serviceLoginRequest.ForceRefetch)
-            {
-                return cachedServiceToken;
-            }
-
-            cachedServiceToken = await FetchServiceLoginToken(serviceLoginRequest);
-            return cachedServiceToken;
+            var requestContent = CreateServiceLoginRequestContent(serviceLoginRequest);
+            var tokenResponse = await HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath);
+            return CreateIamToken(tokenResponse);
         }
 
         public async Task<IIamToken> RefreshToken(IIamToken token)
         {
-            Validate.NotNull(token, nameof(token));
-            if (string.IsNullOrEmpty(token.RefreshToken))
-            {
-                throw new InvalidOperationException("Provided token cannot be refreshed. (RefreshToken is null or empty.)");
-            }
+            ValidateToken(token);
+            if (string.IsNullOrEmpty(token.RefreshToken)) throw new InvalidOperationException("Provided token cannot be refreshed. (RefreshToken is null or empty.)");
 
             var requestContent = CreateRefreshRequestContent(token);
-            return await FetchIamToken(requestContent);
+            var tokenResponse = await HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath);
+            return CreateIamToken(tokenResponse);
         }
 
-        private async Task<IamToken> FetchServiceLoginToken(IamServiceLoginRequest serviceLoginRequest)
+        public async Task RevokeToken(IIamToken token)
         {
-            var requestContent = CreateServiceLoginRequestContent(serviceLoginRequest);
-            return await FetchIamToken(requestContent);
+            ValidateToken(token);
+
+            var t = token as IamToken;
+            if (t == null) throw new InvalidOperationException("Provided token is not of expected type.");
+
+            var requestContent = CreateRevokeRequestContent(token);
+            await HttpRequestWithBasicAuth(requestContent, RevokePath);
+            
+            t.MarkAsRevoked();
         }
 
-        private async Task<IamToken> FetchIamToken(List<KeyValuePair<string, string>> requestContent)
+        public async Task<TokenMetadata> Introspect(IIamToken token)
+        {
+            ValidateToken(token);
+
+            var requestContent = CreateIntrospectRequestContent(token);
+            return await HttpRequestWithBasicAuth<TokenMetadata>(requestContent, IntrospectPath);
+        }
+
+        public async Task<HsdpUserInfo> GetUserInfo(IIamToken token)
+        {
+            ValidateToken(token);
+
+            using var requestBody = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>());
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(configuration.IamEndpoint, UserInfoPath));
+            DecorateWithBearerAuth(request, requestBody, token);
+
+            return await Http.HttpSendRequest<HsdpUserInfo>(request);
+        }
+
+        private async Task<T> HttpRequestWithBasicAuth<T>(List<KeyValuePair<string, string>> requestContent, string path)
         {
             using var requestBody = new FormUrlEncodedContent(requestContent);
-            using var request = new HttpRequestMessage(HttpMethod.Post, configuration.IamEndpoint);
-            DecorateRequest(request, requestBody);
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(configuration.IamEndpoint, path));
+            DecorateWithBasicAuth(request, requestBody);
 
-            var tokenResponse = await HttpGetTokenResponse(request);
+            return await Http.HttpSendRequest<T>(request);
+        }
 
-            var accessToken = $"{tokenResponse.token_type} {tokenResponse.access_token}";
-            return new IamToken(
-                accessToken: accessToken,
-                expiresUtc: DateTime.UtcNow.AddMinutes(tokenResponse.expires_in),
-                tokenType: tokenResponse.token_type,
-                scopes: tokenResponse.scopes,
-                idToken: tokenResponse.id_token,
-                signedToken: tokenResponse.signed_token,
-                issuedTokenType: tokenResponse.issued_token_type,
-                refreshToken: tokenResponse.refresh_token
-            );
+        private async Task HttpRequestWithBasicAuth(List<KeyValuePair<string, string>> requestContent, string path)
+        {
+            using var requestBody = new FormUrlEncodedContent(requestContent);
+            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(configuration.IamEndpoint, path));
+            DecorateWithBasicAuth(request, requestBody);
+
+            await Http.HttpSendRequest(request);
         }
 
         private static List<KeyValuePair<string, string>> CreateServiceLoginRequestContent(IamServiceLoginRequest serviceLoginRequest)
@@ -107,6 +128,46 @@ namespace DotnetHsdpSdk.API
             };
         }
 
+        private static List<KeyValuePair<string, string>> CreateRevokeRequestContent(IIamToken token)
+        {
+            return new List<KeyValuePair<string, string>>
+            {
+                new("token", token.AccessToken)
+            };
+        }
+
+        private static List<KeyValuePair<string, string>> CreateIntrospectRequestContent(IIamToken token)
+        {
+            return CreateRevokeRequestContent(token);
+        }
+
+        private static IamToken CreateIamToken(TokenResponse tokenResponse)
+        {
+            var accessToken = $"{tokenResponse.token_type} {tokenResponse.access_token}";
+            return new IamToken(
+                accessToken: accessToken,
+                expiresUtc: DateTime.UtcNow.AddMinutes(tokenResponse.expires_in),
+                tokenType: tokenResponse.token_type,
+                scopes: tokenResponse.scopes,
+                idToken: tokenResponse.id_token,
+                signedToken: tokenResponse.signed_token,
+                issuedTokenType: tokenResponse.issued_token_type,
+                refreshToken: tokenResponse.refresh_token
+            );
+        }
+
+        private void DecorateWithBasicAuth(HttpRequestMessage request, FormUrlEncodedContent requestBody)
+        {
+            DecorateRequest(request, requestBody);
+            request.Headers.Add("Authorization", $"Basic {configuration.BasicAuthentication}");
+        }
+
+        private static void DecorateWithBearerAuth(HttpRequestMessage request, FormUrlEncodedContent requestBody, IIamToken token)
+        {
+            DecorateRequest(request, requestBody);
+            request.Headers.Add("Authorization", $"Bearer {token.AccessToken}");
+        }
+
         private static void DecorateRequest(HttpRequestMessage request, FormUrlEncodedContent requestBody)
         {
             request.Content = requestBody;
@@ -114,26 +175,10 @@ namespace DotnetHsdpSdk.API
             request.Headers.Add("Accept", "application/json");
         }
 
-        private static async Task<TokenResponse> HttpGetTokenResponse(HttpRequestMessage request)
+        private static void ValidateToken(IIamToken token)
         {
-            using var client = new HttpClient();
-            var response = await client.SendAsync(request);
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new AuthenticationException("Failed to acquire service token");
-            }
-
-            var json = await response.Content.ReadAsStringAsync();
-            try
-            {
-                var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(json);
-                if (tokenResponse == null) throw new AuthenticationException("Unable to parse TokenResponse from json.");
-                return tokenResponse;
-            }
-            catch (JsonException e)
-            {
-                throw new AuthenticationException("Unable to parse TokenResponse from JSON.", e);
-            }
+            Validate.NotNull(token, nameof(token));
+            if (!token.IsValid()) throw new InvalidOperationException("Provided token is not valid.");
         }
 
         private static string GenerateJwtToken(IamServiceLoginRequest serviceLoginRequest)

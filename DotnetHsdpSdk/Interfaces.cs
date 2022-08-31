@@ -8,6 +8,8 @@ namespace DotnetHsdpSdk
         Task<IIamToken> UserLogin(IamUserLoginRequest userLoginRequest);
         Task<IIamToken> ServiceLogin(IamServiceLoginRequest serviceLoginRequest);
         Task<IIamToken> RefreshToken(IIamToken token);
+        Task RevokeToken(IIamToken token);
+        Task<HsdpUserInfo> GetUserInfo(IIamToken token);
     }
 
     public interface IIamToken
@@ -20,5 +22,8 @@ namespace DotnetHsdpSdk
         string SignedToken { get; }
         string IssuedTokenType { get; }
         string? RefreshToken { get; }
+
+        bool IsExpired();
+        bool IsValid();
     }
 }

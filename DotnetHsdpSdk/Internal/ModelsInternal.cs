@@ -16,7 +16,7 @@ namespace DotnetHsdpSdk.Internal
             RefreshToken = refreshToken;
         }
 
-        public string AccessToken { get; }
+        public string AccessToken { get; private set; }
         public DateTime ExpiresUtc { get; }
         public string TokenType { get; }
         public string Scopes { get; }
@@ -24,6 +24,21 @@ namespace DotnetHsdpSdk.Internal
         public string SignedToken { get; }
         public string IssuedTokenType { get; }
         public string? RefreshToken { get; }
+
+        public bool IsExpired()
+        {
+            return ExpiresUtc < DateTime.UtcNow;
+        }
+
+        public bool IsValid()
+        {
+            return !string.IsNullOrEmpty(AccessToken) && !string.IsNullOrEmpty(TokenType) && !IsExpired();
+        }
+
+        public void MarkAsRevoked()
+        {
+            AccessToken = string.Empty;
+        }
     }
 
     internal class TokenResponse

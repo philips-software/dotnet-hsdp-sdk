@@ -2,7 +2,7 @@
 
 namespace DotnetHsdpSdk.Utils
 {
-    public static class Validate
+    internal static class Validate
     {
         public static void NotNull(object o, string name)
         {
