@@ -32,61 +32,61 @@ namespace DotnetHsdpSdk.API
 
         public async Task<IIamToken> UserLogin(IamUserLoginRequest userLoginRequest)
         {
-            const string userLoginApiVersion = "2";
+            const string apiVersion = "2";
             var requestContent = hsdpIamRequestFactory.CreateUserLoginRequestContent(userLoginRequest);
-            var tokenResponse = await http.HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath, userLoginApiVersion);
+            var tokenResponse = await http.HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath, apiVersion);
             return CreateIamToken(tokenResponse);
         }
 
         public async Task<IIamToken> ServiceLogin(IamServiceLoginRequest serviceLoginRequest)
         {
-            const string serviceLoginApiVersion = "2";
+            const string apiVersion = "2";
             var requestContent = hsdpIamRequestFactory.CreateServiceLoginRequestContent(serviceLoginRequest);
-            var tokenResponse = await http.HttpRequestWithoutAuth<TokenResponse>(requestContent, TokenPath, serviceLoginApiVersion);
+            var tokenResponse = await http.HttpRequestWithoutAuth<TokenResponse>(requestContent, TokenPath, apiVersion);
             return CreateIamToken(tokenResponse);
         }
 
         public async Task<IIamToken> RefreshToken(IIamToken token)
         {
-            const string refreshTokenApiVersion = "2";
+            const string apiVersion = "2";
             ValidateToken(token);
             if (string.IsNullOrEmpty(token.RefreshToken)) throw new InvalidOperationException("Provided token cannot be refreshed. (RefreshToken is null or empty.)");
 
             var requestContent = hsdpIamRequestFactory.CreateRefreshRequestContent(token);
-            var tokenResponse = await http.HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath, refreshTokenApiVersion);
+            var tokenResponse = await http.HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath, apiVersion);
             return CreateIamToken(tokenResponse);
         }
 
         public async Task RevokeToken(IIamToken token)
         {
-            const string revokeTokenApiVersion = "2";
+            const string apiVersion = "2";
             ValidateToken(token);
 
             var t = token as IamToken;
             if (t == null) throw new InvalidOperationException("Provided token is not of expected type.");
 
             var requestContent = hsdpIamRequestFactory.CreateRevokeRequestContent(token);
-            await http.HttpRequestWithBasicAuth(requestContent, RevokePath, revokeTokenApiVersion);
+            await http.HttpRequestWithBasicAuth(requestContent, RevokePath, apiVersion);
             
             t.MarkAsRevoked();
         }
 
         public async Task<TokenMetadata> Introspect(IIamToken token)
         {
-            const string introspectApiVersion = "4";
+            const string apiVersion = "4";
             ValidateToken(token);
 
             var requestContent = hsdpIamRequestFactory.CreateIntrospectRequestContent(token);
-            var introspectResponse = await http.HttpRequestWithBasicAuth<IntrospectResponse>(requestContent, IntrospectPath, introspectApiVersion);
+            var introspectResponse = await http.HttpRequestWithBasicAuth<IntrospectResponse>(requestContent, IntrospectPath, apiVersion);
             return CreateTokenMetadata(introspectResponse);
         }
 
         public async Task<HsdpUserInfo> GetUserInfo(IIamToken token)
         {
-            const string userInfoApiVersion = "2";
+            const string apiVersion = "2";
             ValidateToken(token);
             var requestContent = hsdpIamRequestFactory.CreateEmptyRequestContent();
-            var getUserInfoResponse = await http.HttpRequestWithBearerAuth<UserInfoResponse>(requestContent, UserInfoPath, HttpMethod.Get, userInfoApiVersion, token);
+            var getUserInfoResponse = await http.HttpRequestWithBearerAuth<UserInfoResponse>(requestContent, UserInfoPath, HttpMethod.Get, apiVersion, token);
             return CreateHsdpUserInfo(getUserInfoResponse);
         }
 
