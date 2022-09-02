@@ -77,7 +77,8 @@ namespace DotnetHsdpSdk.API
         {
             ValidateToken(token);
             var requestContent = hsdpIamRequestFactory.CreateEmptyRequestContent();
-            return await http.HttpRequestWithBearerAuth<HsdpUserInfo>(requestContent, UserInfoPath, HttpMethod.Get, token);
+            var getUserInfoResponse = await http.HttpRequestWithBearerAuth<UserInfoResponse>(requestContent, UserInfoPath, HttpMethod.Get, token);
+            return CreateHsdpUserInfo(getUserInfoResponse);
         }
 
         private static IamToken CreateIamToken(TokenResponse tokenResponse)
@@ -94,6 +95,30 @@ namespace DotnetHsdpSdk.API
             );
         }
 
+        private static HsdpUserInfo CreateHsdpUserInfo(UserInfoResponse userInfoResponse)
+        {
+            return new HsdpUserInfo
+            {
+                Subject = userInfoResponse.sub,
+                Name = userInfoResponse.name,
+                GivenName = userInfoResponse.given_name,
+                FamilyName = userInfoResponse.family_name,
+                Email = userInfoResponse.email,
+                Address = userInfoResponse.address != null ? CreateAddress(userInfoResponse.address) : null,
+                UpdatedAtInEpochSeconds = userInfoResponse.updated_at
+            };
+        }
+
+        private static Address CreateAddress(AddressClaim addressClaim)
+        {
+            return new Address
+            {
+                Formatted = addressClaim.formatted,
+                StreetAddress = addressClaim.street_address,
+                PostalCode = addressClaim.postal_code
+            };
+        }
+        
         private static void ValidateToken(IIamToken token)
         {
             Validate.NotNull(token, nameof(token));

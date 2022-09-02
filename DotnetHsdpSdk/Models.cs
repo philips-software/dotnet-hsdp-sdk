@@ -98,19 +98,19 @@ namespace DotnetHsdpSdk
 
     public class HsdpUserInfo
     {
-        [JsonPropertyName("sub")]
         public string Subject { get; set; } = "";
-        [JsonPropertyName("name")]
         public string Name { get; set; } = "";
-        [JsonPropertyName("given_name")]
         public string GivenName { get; set; } = "";
-        [JsonPropertyName("family_name")]
         public string FamilyName { get; set; } = "";
-        [JsonPropertyName("email")]
         public string Email { get; set; } = "";
-        [JsonPropertyName("address")]
-        public string? Address { get; set; }
-        [JsonPropertyName("updated_at")]
+        public Address? Address { get; set; }
         public long UpdatedAtInEpochSeconds { get; set; }
+    }
+
+    public class Address
+    {
+        public string Formatted { get; set; } = "";
+        public string StreetAddress { get; set; } = "";
+        public string PostalCode { get; set; } = "";
     }
 }

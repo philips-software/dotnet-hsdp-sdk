@@ -58,5 +58,31 @@ namespace DotnetHsdpSdk.Internal
 
 #pragma warning restore IDE1006 // Naming Styles
     }
+
+    internal class UserInfoResponse
+    {
+#pragma warning disable IDE1006 // Naming Styles
+        
+        public string sub { get; set; } = "";
+        public string name { get; set; } = "";
+        public string given_name { get; set; } = "";
+        public string family_name { get; set; } = "";
+        public string email { get; set; } = "";
+        public AddressClaim? address { get; set; } = null;
+        public long updated_at { get; set; } = 0;
+
+#pragma warning restore IDE1006 // Naming Styles
+    }
+
+    internal class AddressClaim
+    {
+#pragma warning disable IDE1006 // Naming Styles
+        
+        public string formatted { get; set; } = "";
+        public string street_address { get; set; } = "";
+        public string postal_code { get; set; } = "";
+
+#pragma warning restore IDE1006 // Naming Styles
+    }
 }
  
