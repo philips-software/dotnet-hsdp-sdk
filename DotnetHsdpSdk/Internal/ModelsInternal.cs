@@ -20,13 +20,13 @@ namespace DotnetHsdpSdk.Internal
         }
 
         public string AccessToken { get; private set; }
-        public DateTime ExpiresUtc { get; }
-        public string TokenType { get; }
-        public string Scopes { get; }
-        public string IdToken { get; }
-        public string SignedToken { get; }
-        public string IssuedTokenType { get; }
-        public string? RefreshToken { get; }
+        public DateTime ExpiresUtc { get; private set; }
+        public string TokenType { get; private set; }
+        public string Scopes { get; private set; }
+        public string IdToken { get; private set; }
+        public string SignedToken { get; private set; }
+        public string IssuedTokenType { get; private set; }
+        public string? RefreshToken { get; private set; }
 
         public bool IsExpired()
         {
@@ -41,6 +41,13 @@ namespace DotnetHsdpSdk.Internal
         public void MarkAsRevoked()
         {
             AccessToken = string.Empty;
+            ExpiresUtc = DateTime.MinValue;
+            TokenType = string.Empty;
+            Scopes = string.Empty;
+            IdToken = string.Empty;
+            SignedToken = string.Empty;
+            IssuedTokenType = string.Empty;
+            RefreshToken = string.Empty;
         }
     }
 

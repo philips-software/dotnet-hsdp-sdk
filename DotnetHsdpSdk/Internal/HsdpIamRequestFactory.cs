@@ -60,7 +60,9 @@ namespace DotnetHsdpSdk.Internal
 
         public IHsdpIamRequest CreateIntrospectRequestContent(IIamToken token)
         {
-            return CreateRevokeRequestContent(token);
+            return CreateRequest(
+                new KeyValuePair<string, string>("token", token.AccessToken)
+            );
         }
 
         public IHsdpIamRequest CreateEmptyRequestContent()
@@ -76,8 +78,9 @@ namespace DotnetHsdpSdk.Internal
         private static string GenerateJwtToken(IamServiceLoginRequest serviceLoginRequest)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var privateKeyBase64 = Regex.Replace(serviceLoginRequest.ServiceKey, "-----BEGIN RSA PRIVATE KEY-----\n?", "");
-            privateKeyBase64 = Regex.Replace(privateKeyBase64, "\n?-----END RSA PRIVATE KEY-----\n?", "");
+            var privateKeyBase64 = Regex.Replace(serviceLoginRequest.ServiceKey, "\n", "");
+            privateKeyBase64 = Regex.Replace(privateKeyBase64, "-----BEGIN RSA PRIVATE KEY-----", "");
+            privateKeyBase64 = Regex.Replace(privateKeyBase64, "-----END RSA PRIVATE KEY-----", "");
             try
             {
                 var privateKey = Convert.FromBase64String(privateKeyBase64);

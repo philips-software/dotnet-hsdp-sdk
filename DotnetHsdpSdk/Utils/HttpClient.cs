@@ -18,14 +18,14 @@ namespace DotnetHsdpSdk.Utils
         {
             using var client = new HttpClient();
             var response = await client.SendAsync(request);
+            var responseBody = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {
-                var error = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"Request failed: {error}");
+                Console.WriteLine($"Request failed: {responseBody}");
                 throw new AuthenticationException("HTTP request failed with status code: " + response.StatusCode);
             }
 
-            return await response.Content.ReadAsStringAsync();
+            return responseBody;
         }
 
         public async Task<T> HttpSendRequest<T>(HttpRequestMessage request)

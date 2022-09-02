@@ -13,6 +13,7 @@ namespace DotnetHsdpSdk.API
     {
         private readonly IHttpRequester http;
         private readonly IHsdpIamRequestFactory hsdpIamRequestFactory;
+        
         private const string TokenPath = "authorize/oauth2/token";
         private const string RevokePath = "authorize/oauth2/revoke";
         private const string IntrospectPath = "authorize/oauth2/introspect";
@@ -31,55 +32,61 @@ namespace DotnetHsdpSdk.API
 
         public async Task<IIamToken> UserLogin(IamUserLoginRequest userLoginRequest)
         {
+            const string userLoginApiVersion = "2";
             var requestContent = hsdpIamRequestFactory.CreateUserLoginRequestContent(userLoginRequest);
-            var tokenResponse = await http.HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath);
+            var tokenResponse = await http.HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath, userLoginApiVersion);
             return CreateIamToken(tokenResponse);
         }
 
         public async Task<IIamToken> ServiceLogin(IamServiceLoginRequest serviceLoginRequest)
         {
+            const string serviceLoginApiVersion = "2";
             var requestContent = hsdpIamRequestFactory.CreateServiceLoginRequestContent(serviceLoginRequest);
-            var tokenResponse = await http.HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath);
+            var tokenResponse = await http.HttpRequestWithoutAuth<TokenResponse>(requestContent, TokenPath, serviceLoginApiVersion);
             return CreateIamToken(tokenResponse);
         }
 
         public async Task<IIamToken> RefreshToken(IIamToken token)
         {
+            const string refreshTokenApiVersion = "2";
             ValidateToken(token);
             if (string.IsNullOrEmpty(token.RefreshToken)) throw new InvalidOperationException("Provided token cannot be refreshed. (RefreshToken is null or empty.)");
 
             var requestContent = hsdpIamRequestFactory.CreateRefreshRequestContent(token);
-            var tokenResponse = await http.HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath);
+            var tokenResponse = await http.HttpRequestWithBasicAuth<TokenResponse>(requestContent, TokenPath, refreshTokenApiVersion);
             return CreateIamToken(tokenResponse);
         }
 
         public async Task RevokeToken(IIamToken token)
         {
+            const string revokeTokenApiVersion = "2";
             ValidateToken(token);
 
             var t = token as IamToken;
             if (t == null) throw new InvalidOperationException("Provided token is not of expected type.");
 
             var requestContent = hsdpIamRequestFactory.CreateRevokeRequestContent(token);
-            await http.HttpRequestWithBasicAuth(requestContent, RevokePath);
+            await http.HttpRequestWithBasicAuth(requestContent, RevokePath, revokeTokenApiVersion);
             
             t.MarkAsRevoked();
         }
 
         public async Task<TokenMetadata> Introspect(IIamToken token)
         {
+            const string introspectApiVersion = "4";
             ValidateToken(token);
 
             var requestContent = hsdpIamRequestFactory.CreateIntrospectRequestContent(token);
-            var introspectResponse = await http.HttpRequestWithBasicAuth<IntrospectResponse>(requestContent, IntrospectPath);
+            var introspectResponse = await http.HttpRequestWithBasicAuth<IntrospectResponse>(requestContent, IntrospectPath, introspectApiVersion);
             return CreateTokenMetadata(introspectResponse);
         }
 
         public async Task<HsdpUserInfo> GetUserInfo(IIamToken token)
         {
+            const string userInfoApiVersion = "2";
             ValidateToken(token);
             var requestContent = hsdpIamRequestFactory.CreateEmptyRequestContent();
-            var getUserInfoResponse = await http.HttpRequestWithBearerAuth<UserInfoResponse>(requestContent, UserInfoPath, HttpMethod.Get, token);
+            var getUserInfoResponse = await http.HttpRequestWithBearerAuth<UserInfoResponse>(requestContent, UserInfoPath, HttpMethod.Get, userInfoApiVersion, token);
             return CreateHsdpUserInfo(getUserInfoResponse);
         }
 
@@ -97,7 +104,7 @@ namespace DotnetHsdpSdk.API
             );
         }
 
-        private TokenMetadata CreateTokenMetadata(IntrospectResponse introspectResponse)
+        private static TokenMetadata CreateTokenMetadata(IntrospectResponse introspectResponse)
         {
             return new TokenMetadata
             {
