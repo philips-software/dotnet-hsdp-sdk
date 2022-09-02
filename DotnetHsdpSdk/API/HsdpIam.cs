@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -70,7 +71,8 @@ namespace DotnetHsdpSdk.API
             ValidateToken(token);
 
             var requestContent = hsdpIamRequestFactory.CreateIntrospectRequestContent(token);
-            return await http.HttpRequestWithBasicAuth<TokenMetadata>(requestContent, IntrospectPath);
+            var introspectResponse = await http.HttpRequestWithBasicAuth<IntrospectResponse>(requestContent, IntrospectPath);
+            return CreateTokenMetadata(introspectResponse);
         }
 
         public async Task<HsdpUserInfo> GetUserInfo(IIamToken token)
@@ -93,6 +95,58 @@ namespace DotnetHsdpSdk.API
                 issuedTokenType: tokenResponse.issued_token_type,
                 refreshToken: tokenResponse.refresh_token
             );
+        }
+
+        private TokenMetadata CreateTokenMetadata(IntrospectResponse introspectResponse)
+        {
+            return new TokenMetadata
+            {
+                IsActive = introspectResponse.active,
+                Scopes = introspectResponse.scope,
+                ClientId = introspectResponse.client_id,
+                UserName = introspectResponse.username,
+                TokenType = introspectResponse.token_type,
+                ExpirationTimeInEpochSeconds = introspectResponse.exp,
+                Subject = introspectResponse.sub,
+                Issuer = introspectResponse.iss,
+                IdentityType = introspectResponse.identity_type,
+                DeviceType = introspectResponse.device_type,
+                Organizations = introspectResponse.organizations != null ? CreateOrganizations(introspectResponse.organizations) : null,
+                TokenTypeHint = introspectResponse.token_type_hint,
+                ClientOrganizationId = introspectResponse.client_organization_id,
+                Actor = introspectResponse.act != null ? CreateActor(introspectResponse.act) : null
+            };
+        }
+
+        private static Organizations CreateOrganizations(HsdpOrganizations organizations)
+        {
+            return new Organizations
+            {
+                ManagingOrganization = organizations.managingOrganization,
+                OrganizationList = organizations.organizationList.Select(CreateOrganization).ToList()
+            };
+        }
+
+        private static Organization CreateOrganization(HsdpOrganization organization)
+        {
+            return new Organization
+            {
+                OrganizationId = organization.organizationId,
+                OrganizationName = organization.organizationName,
+                Disabled = organization.disabled,
+                Permissions = organization.permissions,
+                EffectivePermissions = organization.effectivePermissions,
+                Roles = organization.roles,
+                Groups = organization.groups
+            };
+        }
+
+        private static Actor CreateActor(HsdpActor actor)
+        {
+            return new Actor
+            {
+                Sub = actor.sub
+            };
         }
 
         private static HsdpUserInfo CreateHsdpUserInfo(UserInfoResponse userInfoResponse)

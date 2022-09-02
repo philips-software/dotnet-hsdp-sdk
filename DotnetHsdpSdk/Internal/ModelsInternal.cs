@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 [assembly:InternalsVisibleTo("DotnetHsdpSdkTests")]
@@ -56,6 +57,62 @@ namespace DotnetHsdpSdk.Internal
         public string signed_token { get; set; } = "";
         public string issued_token_type { get; set; } = "";
 
+#pragma warning restore IDE1006 // Naming Styles
+    }
+
+    internal class IntrospectResponse
+    {
+#pragma warning disable IDE1006 // Naming Styles
+
+        public bool active { get; set; } = false;
+        public string scope { get; set; } = "";
+        public string client_id { get; set; } = "";
+        public string username { get; set; } = "";
+        public string token_type { get; set; } = "";
+        public long exp { get; set; }
+        public string? sub { get; set; } = null;
+        public string iss { get; set; } = "";
+        public string identity_type { get; set; } = "";
+        public string device_type { get; set; } = "";
+        public HsdpOrganizations? organizations { get; set; } = null;
+        public string token_type_hint { get; set; } = "";
+        public string client_organization_id { get; set; } = "";
+        public HsdpActor? act { get; set; } = null;
+
+#pragma warning restore IDE1006 // Naming Styles
+    }
+
+    public class HsdpOrganizations
+    {
+#pragma warning disable IDE1006 // Naming Styles
+
+        public string managingOrganization { get; set; } = "";
+        public List<HsdpOrganization> organizationList { get; set; } = new();
+
+#pragma warning restore IDE1006 // Naming Styles
+    }
+
+    public class HsdpOrganization
+    {
+#pragma warning disable IDE1006 // Naming Styles
+
+        public string organizationId { get; set; } = "";
+        public string organizationName { get; set; } = "";
+        public bool? disabled { get; set; }
+        public List<string> permissions { get; set; } = new();
+        public List<string> effectivePermissions { get; set; } = new();
+        public List<string> roles { get; set; } = new();
+        public List<string> groups { get; set; } = new();
+        
+#pragma warning restore IDE1006 // Naming Styles
+    }
+
+    public class HsdpActor
+    {
+#pragma warning disable IDE1006 // Naming Styles
+
+        public string sub { get; set; } = "";
+        
 #pragma warning restore IDE1006 // Naming Styles
     }
 

@@ -59,7 +59,7 @@ namespace DotnetHsdpSdk
     public class Organizations
     {
         public string ManagingOrganization { get; set; } = "";
-        public List<Organization> OrganizationList { get; set; } = new List<Organization>();
+        public List<Organization> OrganizationList { get; set; } = new();
     }
 
     public class Organization
@@ -67,10 +67,10 @@ namespace DotnetHsdpSdk
         public string OrganizationId { get; set; } = "";
         public string OrganizationName { get; set; } = "";
         public bool? Disabled { get; set; }
-        public List<string> Permissions { get; set; } = new List<string>();
-        public List<string> EffectivePermissions { get; set; } = new List<string>();
-        public List<string> Roles { get; set; } = new List<string>();
-        public List<string> Groups { get; set; } = new List<string>();
+        public List<string> Permissions { get; set; } = new();
+        public List<string> EffectivePermissions { get; set; } = new();
+        public List<string> Roles { get; set; } = new();
+        public List<string> Groups { get; set; } = new();
     }
 
     public class TokenMetadata
@@ -81,14 +81,14 @@ namespace DotnetHsdpSdk
         public string UserName { get; set; } = "";
         public string TokenType { get; set; } = "";
         public long ExpirationTimeInEpochSeconds { get; set; }
-        public string Subject { get; set; } = "";
+        public string? Subject { get; set; } = null;
         public string Issuer { get; set; } = "";
         public string IdentityType { get; set; } = "";
         public string DeviceType { get; set; } = "";
-        public Organizations Organizations { get; set; } = new Organizations();
+        public Organizations? Organizations { get; set; } = null;
         public string TokenTypeHint { get; set; } = "";
         public string ClientOrganizationId { get; set; } = "";
-        public Actor Actor { get; set; } = new Actor();
+        public Actor? Actor { get; set; } = null;
     }
 
     public class Actor

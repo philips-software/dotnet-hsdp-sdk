@@ -9,6 +9,7 @@ namespace DotnetHsdpSdk
         Task<IIamToken> ServiceLogin(IamServiceLoginRequest serviceLoginRequest);
         Task<IIamToken> RefreshToken(IIamToken token);
         Task RevokeToken(IIamToken token);
+        Task<TokenMetadata> Introspect(IIamToken token);
         Task<HsdpUserInfo> GetUserInfo(IIamToken token);
     }
 
