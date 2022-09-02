@@ -8,7 +8,7 @@ namespace DotnetHsdpSdk.Utils
     public interface IHttpRequester
     {
         Task<T> HttpRequestWithBasicAuth<T>(IHsdpIamRequest requestContent, string path);
-        Task<T> HttpRequestWithBearerAuth<T>(IHsdpIamRequest requestContent, string path, IIamToken token);
+        Task<T> HttpRequestWithBearerAuth<T>(IHsdpIamRequest requestContent, string path, HttpMethod method, IIamToken token);
         Task HttpRequestWithBasicAuth(IHsdpIamRequest requestContent, string path);
     }
 
@@ -33,10 +33,10 @@ namespace DotnetHsdpSdk.Utils
             return await http.HttpSendRequest<T>(request);
         }
 
-        public async Task<T> HttpRequestWithBearerAuth<T>(IHsdpIamRequest requestContent, string path, IIamToken token)
+        public async Task<T> HttpRequestWithBearerAuth<T>(IHsdpIamRequest requestContent, string path, HttpMethod method, IIamToken token)
         {
             using var requestBody = new FormUrlEncodedContent(requestContent.Content);
-            using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(configuration.IamEndpoint, path));
+            using var request = new HttpRequestMessage(method, new Uri(configuration.IamEndpoint, path));
             DecorateWithBearerAuth(request, requestBody, token);
 
             return await http.HttpSendRequest<T>(request);

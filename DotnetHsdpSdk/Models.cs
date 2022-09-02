@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace DotnetHsdpSdk
 {
@@ -11,7 +12,7 @@ namespace DotnetHsdpSdk
         {
             Validate.NotNull(iamEndpoint, nameof(iamEndpoint));
             Validate.NotNullOrEmpty(clientId, nameof(clientId));
-            Validate.NotNullOrEmpty(clientSecret, nameof(clientSecret));
+            Validate.NotNull(clientSecret, nameof(clientSecret));
 
             IamEndpoint = iamEndpoint;
 
@@ -97,12 +98,19 @@ namespace DotnetHsdpSdk
 
     public class HsdpUserInfo
     {
+        [JsonPropertyName("sub")]
         public string Subject { get; set; } = "";
+        [JsonPropertyName("name")]
         public string Name { get; set; } = "";
+        [JsonPropertyName("given_name")]
         public string GivenName { get; set; } = "";
+        [JsonPropertyName("family_name")]
         public string FamilyName { get; set; } = "";
+        [JsonPropertyName("email")]
         public string Email { get; set; } = "";
+        [JsonPropertyName("address")]
         public string? Address { get; set; }
+        [JsonPropertyName("updated_at")]
         public long UpdatedAtInEpochSeconds { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Security.Authentication;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace DotnetHsdpSdk.Utils
             var response = await client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Request failed: {error}");
                 throw new AuthenticationException("HTTP request failed with status code: " + response.StatusCode);
             }
 

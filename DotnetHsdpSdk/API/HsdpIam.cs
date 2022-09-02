@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DotnetHsdpSdk.Internal;
@@ -76,14 +77,13 @@ namespace DotnetHsdpSdk.API
         {
             ValidateToken(token);
             var requestContent = hsdpIamRequestFactory.CreateEmptyRequestContent();
-            return await http.HttpRequestWithBearerAuth<HsdpUserInfo>(requestContent, UserInfoPath, token);
+            return await http.HttpRequestWithBearerAuth<HsdpUserInfo>(requestContent, UserInfoPath, HttpMethod.Get, token);
         }
 
         private static IamToken CreateIamToken(TokenResponse tokenResponse)
         {
-            var accessToken = $"{tokenResponse.token_type} {tokenResponse.access_token}";
             return new IamToken(
-                accessToken: accessToken,
+                accessToken: tokenResponse.access_token,
                 expiresUtc: DateTime.UtcNow.AddMinutes(tokenResponse.expires_in),
                 tokenType: tokenResponse.token_type,
                 scopes: tokenResponse.scopes,
