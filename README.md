@@ -63,3 +63,35 @@ Next example shows how to log into IAM as a service:
     var token = iam.ServiceLogin(new IamServiceLoginRequest("service key", "service audience", "service id"));
     ...
 ```
+
+### Configuration
+
+The IAM configuration can be added to the application's appsettings.json, e.g.:
+
+```json
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*",
+  "IamConfiguration": {
+    "url": "...",
+    "clientId": "...",
+    "clientSecret": "..."
+  }
+}
+```
+
+It can then used in Startup.cs as follows:
+
+```csharp
+    var iamUrl = Configuration["IamConfiguration:url"];
+    var iamClientId = Configuration["IamConfiguration:clientId"];
+    var iamClientSecret = Configuration["IamConfiguration:clientSecret"];
+    var iamHsdpConfiguration = new HsdpIamConfiguration(new Uri(iamUrl, iamClientId, iamClientSecret);
+    ...
+```
