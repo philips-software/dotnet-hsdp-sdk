@@ -1,88 +1,78 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
-using DotnetHsdpSdk.IAM;
-using DotnetHsdpSdk.IAM.Internal;
 
 namespace DotnetHsdpSdk.Utils;
 
 public interface IHttpRequester
 {
-    Task<T> HttpRequestWithoutAuth<T>(IHsdpIamRequest requestContent, string path, string version);
-    Task<T> HttpRequestWithBasicAuth<T>(IHsdpIamRequest requestContent, string path, string version);
-
-    Task<T> HttpRequestWithBearerAuth<T>(IHsdpIamRequest requestContent, string path, HttpMethod method, string version,
-        IIamToken token);
-
-    Task HttpRequestWithBasicAuth(IHsdpIamRequest requestContent, string path, string version);
+    Task<IHsdpResponse> HttpRequest(IHsdpRequest request);
+    Task<IHsdpResponse<T>> HttpRequest<T>(IHsdpRequest request) where T:class;
 }
 
-// Todo - refactor for general-purpose use when other APIs are being developed.
-internal class HttpRequester : IHttpRequester
+public class HttpRequester : IHttpRequester
 {
-    private readonly HsdpIamConfiguration configuration;
-    private readonly IHttp http;
-
-    public HttpRequester(HsdpIamConfiguration configuration, IHttp http)
+    public async Task<IHsdpResponse> HttpRequest(IHsdpRequest request)
     {
-        this.configuration = configuration;
-        this.http = http;
+        var responseMessage = await BuildAndExecuteRequest(request);
+        var keyValuePairs = responseMessage.Headers
+            .Select(pair => new KeyValuePair<string, string>(pair.Key, pair.Value.FirstOrDefault() ?? ""))
+            .ToList();
+
+        return new HsdpResponse(keyValuePairs);
     }
 
-    public async Task<T> HttpRequestWithoutAuth<T>(IHsdpIamRequest requestContent, string path, string version)
+    public async Task<IHsdpResponse<T>> HttpRequest<T>(IHsdpRequest request) where T:class
     {
-        using var requestBody = new FormUrlEncodedContent(requestContent.Content);
-        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(configuration.IamEndpoint, path));
-        DecorateRequest(request, requestBody, version);
+        var responseMessage = await BuildAndExecuteRequest(request);
 
-        return await http.HttpSendRequest<T>(request);
+        var keyValuePairs = responseMessage.Headers
+            .Select(pair => new KeyValuePair<string, string>(pair.Key, pair.Value.FirstOrDefault() ?? ""))
+            .ToList();
+        try
+        {
+            var responseBody = await responseMessage.Content.ReadFromJsonAsync<T>()
+                               ?? throw new HsdpRequestException("Response body should not be null");
+            return new HsdpResponse<T>(keyValuePairs, responseBody);
+        }
+        catch (NotSupportedException e) // When content type is not valid
+        {
+            throw new HsdpRequestException("Invalid content type", e);
+        }
+        catch (JsonException e) // Invalid JSON
+        {
+            throw new HsdpRequestException("Invalid JSON", e);
+        }
     }
-
-    public async Task<T> HttpRequestWithBasicAuth<T>(IHsdpIamRequest requestContent, string path, string version)
+    
+    private static async Task<HttpResponseMessage> BuildAndExecuteRequest(IHsdpRequest request)
     {
-        using var requestBody = new FormUrlEncodedContent(requestContent.Content);
-        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(configuration.IamEndpoint, path));
-        DecorateWithBasicAuth(request, requestBody, version);
+        var requestMessage = new HttpRequestMessage(request.Method, request.Path);
+        foreach (var (key, value) in request.Headers)
+        {
+            requestMessage.Headers.Add(key, value);
+        }
 
-        return await http.HttpSendRequest<T>(request);
-    }
-
-    public async Task<T> HttpRequestWithBearerAuth<T>(IHsdpIamRequest requestContent, string path, HttpMethod method,
-        string version, IIamToken token)
-    {
-        using var requestBody = new FormUrlEncodedContent(requestContent.Content);
-        using var request = new HttpRequestMessage(method, new Uri(configuration.IamEndpoint, path));
-        DecorateWithBearerAuth(request, requestBody, token, version);
-
-        return await http.HttpSendRequest<T>(request);
-    }
-
-    public async Task HttpRequestWithBasicAuth(IHsdpIamRequest requestContent, string path, string version)
-    {
-        using var requestBody = new FormUrlEncodedContent(requestContent.Content);
-        using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(configuration.IamEndpoint, path));
-        DecorateWithBasicAuth(request, requestBody, version);
-
-        await http.HttpSendRequest(request);
-    }
-
-    private void DecorateWithBasicAuth(HttpRequestMessage request, FormUrlEncodedContent requestBody, string version)
-    {
-        DecorateRequest(request, requestBody, version);
-        request.Headers.Add("Authorization", $"Basic {configuration.BasicAuthentication}");
-    }
-
-    private static void DecorateWithBearerAuth(HttpRequestMessage request, FormUrlEncodedContent requestBody,
-        IIamToken token, string version)
-    {
-        DecorateRequest(request, requestBody, version);
-        request.Headers.Add("Authorization", $"Bearer {token.AccessToken}");
-    }
-
-    private static void DecorateRequest(HttpRequestMessage request, FormUrlEncodedContent requestBody, string version)
-    {
-        request.Content = requestBody;
-        request.Headers.Add("api-version", version);
-        request.Headers.Add("Accept", "application/json");
+        // TODO: handle query parameters
+        // if (request.QueryParameters != null)
+        // {
+        //     foreach (var (key, value) in request.QueryParameters)
+        //     {
+        //         requestMessage.Options.Set(key, value);
+        //     }
+        // }
+        requestMessage.Content = request.Content;
+        
+        using var client = new HttpClient();
+        var responseMessage = await client.SendAsync(requestMessage);
+        if (!responseMessage.IsSuccessStatusCode)
+        {
+            throw new HsdpRequestException($"Request failed with status {responseMessage.StatusCode}, message {await responseMessage.Content.ReadAsStringAsync()}");
+        }
+        return responseMessage;
     }
 }
