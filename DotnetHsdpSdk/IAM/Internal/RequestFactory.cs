@@ -98,7 +98,7 @@ internal class RequestFactory : IRequestFactory
             HeadersForBasicAuth("4"),
             new List<KeyValuePair<string, string>>
             {
-                new("token", token.AccessToken)                
+                new("token", token.AccessToken)
             }
         );
     }
