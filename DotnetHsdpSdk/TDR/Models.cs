@@ -16,6 +16,7 @@ public class HsdpTdrConfiguration
 
     public Uri TdrEndpoint { get; }
 }
+
 public class TdrSearchDataRequestByUrl
 {
     public TdrSearchDataRequestByUrl(string fullUrl)
