@@ -55,8 +55,7 @@ internal class RequestFactory: IRequestFactory
                 modifiedSinceVersion: request.ModifiedSinceVersion
             ),
             QueryParameters = GetQueryParameters(
-                format: request.Format,
-                pretty: request.Pretty
+                format: request.Format
             )
         };
     }
@@ -181,6 +180,14 @@ internal class RequestFactory: IRequestFactory
             new("api-version", "1"),
             new("Accept", $"{_mediaType}; fhirVersion={_fhirVersion}")
         };
+        if (modifiedSinceTimestamp != null)
+        {
+            headers.Add(new KeyValuePair<string, string>("If-Modified-Since", modifiedSinceTimestamp));
+        }
+        if (modifiedSinceVersion != null)
+        {
+            headers.Add(new KeyValuePair<string, string>("If-None-Match", modifiedSinceVersion));
+        }
         if (shouldValidate != null)
         {
             headers.Add(new KeyValuePair<string, string>("X-validate-resource", shouldValidate.ToString()!));
@@ -198,18 +205,13 @@ internal class RequestFactory: IRequestFactory
     }
 
     private static List<KeyValuePair<string, string>> GetQueryParameters(
-        FormatParameter? format = null,
-        bool? pretty = null
+        FormatParameter? format = null
     )
     {
         var queryParameters = new List<KeyValuePair<string, string>>();
         if (format != null)
         {
             queryParameters.Add(new KeyValuePair<string, string>("_format",format.ToString()!));
-        }
-        if (pretty != null)
-        {
-            queryParameters.Add(new KeyValuePair<string, string>("_pretty", pretty.ToString()!));
         }
 
         return queryParameters;

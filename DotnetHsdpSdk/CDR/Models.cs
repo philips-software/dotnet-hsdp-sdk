@@ -32,8 +32,7 @@ public class CdrReadRequest
         string id,
         string? modifiedSinceTimestamp = null,
         string? modifiedSinceVersion = null,
-        FormatParameter? format = null,
-        bool? pretty = null
+        FormatParameter? format = null
     )
     {
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
@@ -44,7 +43,6 @@ public class CdrReadRequest
         ModifiedSinceTimestamp = modifiedSinceTimestamp;
         ModifiedSinceVersion = modifiedSinceVersion;
         Format = format;
-        Pretty = pretty;
     }
 
     public string ResourceType { get; }
