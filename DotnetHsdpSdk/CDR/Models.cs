@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DotnetHsdpSdk.Utils;
+using Hl7.Fhir.Model;
 
 namespace DotnetHsdpSdk.CDR;
 
@@ -23,16 +24,17 @@ public class HsdpCdrConfiguration
 }
 
 #region Requests
+
 public class CdrReadRequest
 {
-    public CdrReadRequest(string resourceType)
-    {
-        Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
-    
-        ResourceType = resourceType;
-    }
-
-    public CdrReadRequest(string resourceType, string id, string? modifiedSinceTimestamp, string? modifiedSinceVersion, bool? pretty)
+    public CdrReadRequest(
+        string resourceType,
+        string id,
+        string? modifiedSinceTimestamp = null,
+        string? modifiedSinceVersion = null,
+        FormatParameter? format = null,
+        bool? pretty = null
+    )
     {
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
         Validate.NotNullOrEmpty(id, nameof(resourceType));
@@ -41,6 +43,7 @@ public class CdrReadRequest
         Id = id;
         ModifiedSinceTimestamp = modifiedSinceTimestamp;
         ModifiedSinceVersion = modifiedSinceVersion;
+        Format = format;
         Pretty = pretty;
     }
 
@@ -54,7 +57,7 @@ public class CdrReadRequest
 
 public class CdrReadVersionRequest
 {
-    public CdrReadVersionRequest(string resourceType, string id, string versionId)
+    public CdrReadVersionRequest(string resourceType, string id, string versionId, FormatParameter? format)
     {
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
         Validate.NotNullOrEmpty(id, nameof(resourceType));
@@ -63,6 +66,7 @@ public class CdrReadVersionRequest
         ResourceType = resourceType;
         Id = id;
         VersionId = versionId;
+        Format = format;
     }
 
     public string ResourceType { get; }
@@ -84,22 +88,23 @@ public enum FormatParameter
 
 public class CdrSearchRequest
 {
-    public CdrSearchRequest(Compartment compartment, string resourceType, SearchMethod method, List<QueryParameter>? queryParameters)
+    public CdrSearchRequest(string resourceType, SearchMethod method, Compartment? compartment, FormatParameter? format,
+        List<QueryParameter>? queryParameters)
     {
-        Validate.NotNull(compartment, nameof(compartment));
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
-        
-        Compartment = compartment;
+
         ResourceType = resourceType;
-        QueryParameters = queryParameters;
         Method = method;
+        Compartment = compartment;
+        Format = format;
+        QueryParameters = queryParameters;
     }
 
-    public Compartment Compartment { get; }
     public string ResourceType { get; }
     public SearchMethod Method { get; }
+    public Compartment? Compartment { get; }
     public FormatParameter? Format { get; }
-    public List<QueryParameter>? QueryParameters;
+    public List<QueryParameter>? QueryParameters { get; }
 }
 
 public class QueryParameter
@@ -124,7 +129,7 @@ public class Compartment
     {
         Validate.NotNullOrEmpty(type, nameof(type));
         Validate.NotNullOrEmpty(id, nameof(id));
-        
+
         Type = type;
         Id = id;
     }
@@ -133,27 +138,34 @@ public class Compartment
     public string Id { get; }
 }
 
-public enum SearchMethod {
+public enum SearchMethod
+{
     Get,
     Post,
 }
 
 public class CdrCreateRequest
 {
-    public CdrCreateRequest(string resourceType, string body, bool? shouldValidate, string? condition, ReturnPreference? preference)
+    public CdrCreateRequest(
+        string resourceType,
+        DomainResource resource,
+        bool? shouldValidate = null,
+        FormatParameter? format = null,
+        string? condition = null,
+        ReturnPreference? preference = null)
     {
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
-        Validate.NotNullOrEmpty(body, nameof(body));
 
         ResourceType = resourceType;
-        Body = body;
+        Resource = resource;
         ShouldValidate = shouldValidate;
+        Format = format;
         Condition = condition;
         Preference = preference;
     }
 
     public string ResourceType { get; }
-    public string Body { get; }
+    public DomainResource Resource { get; }
     public bool? ShouldValidate { get; }
     public FormatParameter? Format { get; }
     public string? Condition { get; }
@@ -169,11 +181,12 @@ public enum ReturnPreference
 
 public class CdrCreateBatchOrTransactionRequest
 {
-    public CdrCreateBatchOrTransactionRequest(string body, ReturnPreference? preference)
+    public CdrCreateBatchOrTransactionRequest(string body, FormatParameter? format, ReturnPreference? preference)
     {
         Validate.NotNullOrEmpty(body, nameof(body));
-        
+
         Body = body;
+        Format = format;
         Preference = preference;
     }
 
@@ -188,7 +201,7 @@ public class CdrDeleteByIdRequest
     {
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
         Validate.NotNullOrEmpty(id, nameof(id));
-        
+
         ResourceType = resourceType;
         Id = id;
     }
@@ -203,7 +216,7 @@ public class CdrDeleteByQueryRequest
     {
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
         Validate.NotNull(queryParameters, nameof(queryParameters));
-        
+
         ResourceType = resourceType;
         QueryParameters = queryParameters;
     }
@@ -214,7 +227,8 @@ public class CdrDeleteByQueryRequest
 
 public class CdrUpdateByIdRequest
 {
-    public CdrUpdateByIdRequest(string resourceType, string id, string body, string? forVersion, bool? shouldValidate, ReturnPreference? preference)
+    public CdrUpdateByIdRequest(string resourceType, string id, string body, string? forVersion, bool? shouldValidate,
+        FormatParameter? format, ReturnPreference? preference)
     {
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
         Validate.NotNullOrEmpty(id, nameof(id));
@@ -225,21 +239,23 @@ public class CdrUpdateByIdRequest
         Body = body;
         ForVersion = forVersion;
         ShouldValidate = shouldValidate;
-        this.preference = preference;
+        Format = format;
+        Preference = preference;
     }
-    
+
     public string ResourceType { get; }
     public string Id { get; }
     public string Body { get; }
     public string? ForVersion { get; }
     public bool? ShouldValidate { get; }
     public FormatParameter? Format { get; }
-    public ReturnPreference? preference { get; }
+    public ReturnPreference? Preference { get; }
 }
 
 public class CdrUpdateByQueryRequest
 {
-    public CdrUpdateByQueryRequest(string resourceType, List<QueryParameter> queryParameters, string body, string? forVersion, ReturnPreference? preference)
+    public CdrUpdateByQueryRequest(string resourceType, List<QueryParameter> queryParameters, string body,
+        string? forVersion, FormatParameter? format, ReturnPreference? preference)
     {
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
         Validate.NotNull(queryParameters, nameof(queryParameters));
@@ -249,20 +265,22 @@ public class CdrUpdateByQueryRequest
         QueryParameters = queryParameters;
         Body = body;
         ForVersion = forVersion;
-        this.preference = preference;
+        Format = format;
+        Preference = preference;
     }
-    
+
     public string ResourceType { get; }
     public List<QueryParameter> QueryParameters { get; }
     public string Body { get; }
     public string? ForVersion { get; }
     public FormatParameter? Format { get; }
-    public ReturnPreference? preference { get; }
+    public ReturnPreference? Preference { get; }
 }
 
 public class CdrPatchByIdRequest
 {
-    public CdrPatchByIdRequest(string resourceType, string id, string body, PatchContentType contentType, string? forVersion, bool? shouldValidate, ReturnPreference? preference)
+    public CdrPatchByIdRequest(string resourceType, string id, string body, PatchContentType contentType,
+        string? forVersion, bool? shouldValidate, FormatParameter? format, ReturnPreference? preference)
     {
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
         Validate.NotNullOrEmpty(id, nameof(id));
@@ -271,20 +289,21 @@ public class CdrPatchByIdRequest
         ResourceType = resourceType;
         Id = id;
         Body = body;
-        this.contentType = contentType;
+        ContentType = contentType;
         ForVersion = forVersion;
         ShouldValidate = shouldValidate;
-        this.preference = preference;
+        Format = format;
+        Preference = preference;
     }
-    
+
     public string ResourceType { get; }
     public string Id { get; }
     public string Body { get; }
-    public PatchContentType contentType { get; }
+    public PatchContentType ContentType { get; }
     public string? ForVersion { get; }
     public bool? ShouldValidate { get; }
     public FormatParameter? Format { get; }
-    public ReturnPreference? preference { get; }
+    public ReturnPreference? Preference { get; }
 }
 
 public enum PatchContentType
@@ -297,7 +316,8 @@ public enum PatchContentType
 
 public class CdrPatchByQueryRequest
 {
-    public CdrPatchByQueryRequest(string resourceType, List<QueryParameter> queryParameters, string body, PatchContentType contentType, string? forVersion, ReturnPreference? preference)
+    public CdrPatchByQueryRequest(string resourceType, List<QueryParameter> queryParameters, string body,
+        PatchContentType contentType, string? forVersion, FormatParameter? format, ReturnPreference? preference)
     {
         Validate.NotNullOrEmpty(resourceType, nameof(resourceType));
         Validate.NotNull(queryParameters, nameof(queryParameters));
@@ -308,9 +328,10 @@ public class CdrPatchByQueryRequest
         Body = body;
         this.contentType = contentType;
         ForVersion = forVersion;
+        Format = format;
         this.preference = preference;
     }
-    
+
     public string ResourceType { get; }
     public List<QueryParameter> QueryParameters { get; }
     public string Body { get; }
@@ -319,156 +340,44 @@ public class CdrPatchByQueryRequest
     public FormatParameter? Format { get; }
     public ReturnPreference? preference { get; }
 }
+
 #endregion
 
 #region Responses
 
-public class ReadResponse
+public class CdrReadResponse
+{
+    public int Status { get; set; }
+    public DomainResource? Resource { get; set; }
+}
+
+public class CdrSearchResponse
 {
 }
 
-public class SearchResponse
+public class CdrCreateResponse
+{
+    public int Status { get; set; }
+    public DomainResource? Resource { get; set; }
+    public string Location { get; set; }
+    public string ETag { get; set; }
+    public string LastModified { get; set; }
+}   
+
+public class CdrBatchOrTransactionResponse
 {
 }
 
-public class CreateResponse
+public class CdrDeleteResponse
 {
 }
 
-public class BatchOrTransactionResponse
+public class CdrUpdateResponse
 {
 }
 
-public class DeleteResponse
-{
-}
-
-
-public class UpdateResponse
-{
-}
-
-public class PatchResponse
+public class CdrPatchResponse
 {
 }
 
 #endregion
-
-// public class DataItems
-// {
-//     public List<DataItem> Data { get; set; }
-//     public Pagination Pagination { get; set; }
-//     public string RequestId { get; set; }
-//
-//     public DataItems(List<DataItem> data, Pagination pagination, string requestId)
-//     {
-//         Data = data;
-//         Pagination = pagination;
-//         RequestId = requestId;
-//     }
-// }
-//
-// public class DataItem
-// {
-//     public string? Id { get; set; }
-//     public Meta? Meta { get; set; }
-//     public string Timestamp { get; set; }
-//     public int? SequenceNumber { get; set; }
-//     public Identifier? Device { get; set; }
-//     public Identifier? User { get; set; }
-//     public Identifier? RelatedPeripheral { get; set; }
-//     public Identifier? RelatedUser { get; set; }
-//     public Coding DataType { get; set; }
-//     public string Organization { get; set; }
-//     public string? Application { get; set; }
-//     public string? Proposition { get; set; }
-//     public string? Subscription { get; set; }
-//     public string? DataSource { get; set; }
-//     public string? DataCategory { get; set; }
-//
-//     /**
-//      * As [data] is a dynamic structure, it cannot be modelled with predefined classes.
-//      * Therefore, it is exposed as a JsonObject which can be (de)serialized (from)to JSON.
-//      */
-//     public JsonObject? Data { get; set; }
-//     public Blob? Blob { get; set; }
-//     public string? DeleteTimestamp { get; set; }
-//     public string? CreationTimestamp { get; set; }
-//     public bool? Tombstone { get; set; }
-//     public SelfLink? Link { get; set; }
-//
-//     public DataItem(string timestamp, Coding dataType, string organization)
-//     {
-//         Timestamp = timestamp;
-//         DataType = dataType;
-//         Organization = organization;
-//     }
-// }
-//
-// public class Meta
-// {
-//     public string LastUpdated { get; set; }
-//     public string VersionId { get; set; }
-//
-//     public Meta(string lastUpdated, string versionId)
-//     {
-//         LastUpdated = lastUpdated;
-//         VersionId = versionId;
-//     }
-// }
-//
-// public class Identifier
-// {
-//     public string? System { get; set; }
-//     public string Value { get; set; }
-//
-//     public Identifier(string? system, string value)
-//     {
-//         System = system;
-//         Value = value;
-//     }
-// }
-//
-// public class Coding
-// {
-//     public string System { get; set; }
-//     public string Code { get; set; }
-//
-//     public Coding(string system, string code)
-//     {
-//         System = system;
-//         Code = code;
-//     }
-// }
-//
-// public class Blob
-// {
-//     public byte[] Data { get; set; }
-//
-//     public Blob(byte[] data)
-//     {
-//         Data = data;
-//     }
-// }
-//
-// public class SelfLink
-// {
-//     public string Self { get; set; }
-//
-//     public SelfLink(string self)
-//     {
-//         Self = self;
-//     }
-// }
-//
-// public class Pagination
-// {
-//     public int Offset { get; set; }
-//     public int Limit { get; set; }
-//
-//     public Pagination(int offset, int limit)
-//     {
-//         Offset = offset;
-//         Limit = limit;
-//     }
-// }

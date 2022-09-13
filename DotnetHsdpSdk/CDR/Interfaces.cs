@@ -5,15 +5,15 @@ namespace DotnetHsdpSdk.CDR;
 
 public interface IHsdpCdr
 {
-    Task<ReadResponse> Read(CdrReadRequest readRequest, IIamToken token);
-    Task<ReadResponse> Read(CdrReadVersionRequest readVersionRequest, IIamToken token);
-    Task<SearchResponse> Search(CdrSearchRequest searchRequest, IIamToken token);
-    Task<CreateResponse> Create(CdrCreateRequest createRequest, IIamToken token);
-    Task<BatchOrTransactionResponse> CreateBatchOrTransaction(CdrCreateBatchOrTransactionRequest createBatchOrTransactionRequest, IIamToken token);
-    Task<DeleteResponse> Delete(CdrDeleteByIdRequest deleteRequest, IIamToken token);
-    Task<DeleteResponse> Delete(CdrDeleteByQueryRequest deleteRequest, IIamToken token);
-    Task<UpdateResponse> Update(CdrUpdateByIdRequest updateRequest, IIamToken token);
-    Task<UpdateResponse> Update(CdrUpdateByQueryRequest updateRequest, IIamToken token);
-    Task<PatchResponse> Patch(CdrPatchByIdRequest patchRequest, IIamToken token);
-    Task<PatchResponse> Patch(CdrPatchByQueryRequest patchRequest, IIamToken token);
+    Task<CdrReadResponse> Read(CdrReadRequest readRequest, IIamToken token);
+    Task<CdrReadResponse> Read(CdrReadVersionRequest readVersionRequest, IIamToken token);
+    Task<CdrSearchResponse> Search(CdrSearchRequest searchRequest, IIamToken token);
+    Task<CdrCreateResponse> Create(CdrCreateRequest createRequest, IIamToken token);
+    Task<CdrBatchOrTransactionResponse> CreateBatchOrTransaction(CdrCreateBatchOrTransactionRequest createBatchOrTransactionRequest, IIamToken token);
+    Task<CdrDeleteResponse> Delete(CdrDeleteByIdRequest deleteRequest, IIamToken token);
+    Task<CdrDeleteResponse> Delete(CdrDeleteByQueryRequest deleteRequest, IIamToken token);
+    Task<CdrUpdateResponse> Update(CdrUpdateByIdRequest updateRequest, IIamToken token);
+    Task<CdrUpdateResponse> Update(CdrUpdateByQueryRequest updateRequest, IIamToken token);
+    Task<CdrPatchResponse> Patch(CdrPatchByIdRequest patchRequest, IIamToken token);
+    Task<CdrPatchResponse> Patch(CdrPatchByQueryRequest patchRequest, IIamToken token);
 }
