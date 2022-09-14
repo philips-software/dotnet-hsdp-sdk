@@ -25,26 +25,26 @@ public class HsdpTdr : IHsdpTdr
         _requestFactory = requestFactory;
     }
 
-    public async Task<IHsdpResponse<DataItems>> SearchDataItems(
-        TdrSearchDataRequestByUrl searchDataRequest,
+    public async Task<TdrSearchDataResponse> SearchDataItems(
+        TdrSearchDataByUrlRequest searchDataByUrlRequest,
         IIamToken token,
         string? requestId
     )
     {
-        var request = _requestFactory.CreateSearchDataItemByUrlRequest(searchDataRequest, token, requestId);
+        var request = _requestFactory.CreateSearchDataItemByUrlRequest(searchDataByUrlRequest, token, requestId);
         var response = await _http.HttpRequest<BundleForGetDataItemResponse>(request);
-        return CreateDataItemsResponse(response);
+        return CreateTdrSearchDataResponse(response);
     }
 
-    public async Task<IHsdpResponse<DataItems>> SearchDataItems(
-        TdrSearchDataRequest searchDataRequest,
+    public async Task<TdrSearchDataResponse> SearchDataItems(
+        TdrSearchDataByQueryRequest searchDataByQueryRequest,
         IIamToken token,
         string? requestId
     )
     {
-        var request = _requestFactory.CreateSearchDataItemRequest(searchDataRequest, token, requestId);
+        var request = _requestFactory.CreateSearchDataItemRequest(searchDataByQueryRequest, token, requestId);
         var response = await _http.HttpRequest<BundleForGetDataItemResponse>(request);
-        return CreateDataItemsResponse(response);
+        return CreateTdrSearchDataResponse(response);
     }
 
     public Task StoreDataItem(
@@ -82,23 +82,19 @@ public class HsdpTdr : IHsdpTdr
         throw new NotImplementedException();
     }
 
-    private static IHsdpResponse<DataItems> CreateDataItemsResponse(IHsdpResponse<BundleForGetDataItemResponse> response)
+    private static TdrSearchDataResponse CreateTdrSearchDataResponse(IHsdpResponse<BundleForGetDataItemResponse> response)
     {
         var bundle = response.Body;
         if (bundle == null) throw new Exception("Data item search failed");
         var limit = DetermineLimitFromResponseLink(bundle);
         var fakeRequestId = Guid.NewGuid().ToString(); // TODO: parse response headers to get the request id
-        return new HsdpResponse<DataItems>(
-            FilterResponseHeaders(response.Headers, new List<string>
-            {
-                "ETag"
-            }),
-            new DataItems(
-                bundle.entry.Select(CreateDataItem).ToList(),
-                new Pagination(bundle._startAt, limit),
-                fakeRequestId
-            )
-        );
+        return new TdrSearchDataResponse
+        {
+            Status = response.StatusCode,
+            DataItems = bundle.entry.Select(CreateDataItem).ToList(),
+            Pagination = new Pagination(bundle._startAt, limit),
+            RequestId = fakeRequestId
+        };
     }
 
     private static List<KeyValuePair<string,string>> FilterResponseHeaders(

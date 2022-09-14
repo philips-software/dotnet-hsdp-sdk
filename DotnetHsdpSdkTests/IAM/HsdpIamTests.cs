@@ -1,4 +1,5 @@
-﻿using DotnetHsdpSdk.IAM;
+﻿using System.Net;
+using DotnetHsdpSdk.IAM;
 using DotnetHsdpSdk.IAM.Internal;
 using DotnetHsdpSdk.Utils;
 using Moq;
@@ -13,6 +14,7 @@ public class HsdpIamTests
     private readonly IamServiceLoginRequest serviceLogin = new("testservicekey", "testserviceaudience", "testserviceid");
 
     private readonly HsdpResponse<TokenResponse> _tokenResponse = new(
+        HttpStatusCode.OK,
         new List<KeyValuePair<string, string>>(),
         new TokenResponse
         {

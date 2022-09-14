@@ -8,8 +8,8 @@ namespace DotnetHsdpSdk.TDR.Internal;
 
 public interface IRequestFactory
 {
-    IHsdpRequest CreateSearchDataItemByUrlRequest(TdrSearchDataRequestByUrl request, IIamToken token, string? requestId = null);
-    IHsdpRequest CreateSearchDataItemRequest(TdrSearchDataRequest request, IIamToken token, string? requestId = null);
+    IHsdpRequest CreateSearchDataItemByUrlRequest(TdrSearchDataByUrlRequest byUrlRequest, IIamToken token, string? requestId = null);
+    IHsdpRequest CreateSearchDataItemRequest(TdrSearchDataByQueryRequest byQueryRequest, IIamToken token, string? requestId = null);
 }
 
 internal class RequestFactory: IRequestFactory
@@ -24,19 +24,19 @@ internal class RequestFactory: IRequestFactory
     }
 
     public IHsdpRequest CreateSearchDataItemByUrlRequest(
-        TdrSearchDataRequestByUrl request,
+        TdrSearchDataByUrlRequest byUrlRequest,
         IIamToken token,
         string? requestId
     )
     {
-        return new HsdpRequest(HttpMethod.Get, new Uri(request.FullUrl))
+        return new HsdpRequest(HttpMethod.Get, new Uri(byUrlRequest.FullUrl))
         {
             Headers = GetHeaders(token.AccessToken, null, requestId)
         };
     }
     
     public IHsdpRequest CreateSearchDataItemRequest(
-        TdrSearchDataRequest request,
+        TdrSearchDataByQueryRequest byQueryRequest,
         IIamToken token,
         string? requestId
     )
@@ -44,7 +44,7 @@ internal class RequestFactory: IRequestFactory
         return new HsdpRequest(HttpMethod.Get, new Uri(_tdrEndpoint, DataItemPath))
         {
             Headers = GetHeaders(token.AccessToken, null, requestId),
-            QueryParameters = request.QueryParameters
+            QueryParameters = byQueryRequest.QueryParameters
         };
     }
     

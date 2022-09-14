@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text.Json.Nodes;
 using DotnetHsdpSdk.Utils;
 
@@ -17,9 +18,11 @@ public class HsdpTdrConfiguration
     public Uri TdrEndpoint { get; }
 }
 
-public class TdrSearchDataRequestByUrl
+#region Requests
+
+public class TdrSearchDataByUrlRequest
 {
-    public TdrSearchDataRequestByUrl(string fullUrl)
+    public TdrSearchDataByUrlRequest(string fullUrl)
     {
         Validate.NotNullOrEmpty(fullUrl, nameof(fullUrl));
 
@@ -29,9 +32,9 @@ public class TdrSearchDataRequestByUrl
     public string FullUrl { get; }
 }
 
-public class TdrSearchDataRequest
+public class TdrSearchDataByQueryRequest
 {
-    public TdrSearchDataRequest(List<KeyValuePair<string, string>> queryParameters)
+    public TdrSearchDataByQueryRequest(List<KeyValuePair<string, string>> queryParameters)
     {
         QueryParameters = queryParameters;
     }
@@ -55,18 +58,32 @@ public class TdrStoreDataBatchRequest
 {
 }
 
-public class DataItems
+#endregion
+
+#region Responses
+
+public class TdrSearchDataResponse
 {
-    public List<DataItem> Data { get; set; }
+    public int Status { get; set; }
+    public List<DataItem> DataItems { get; set; }
     public Pagination Pagination { get; set; }
     public string RequestId { get; set; }
+}
 
-    public DataItems(List<DataItem> data, Pagination pagination, string requestId)
-    {
-        Data = data;
-        Pagination = pagination;
-        RequestId = requestId;
-    }
+public class TdrStoreDataResponse
+{
+}
+
+public class TdrDeleteDataResponse
+{
+}
+
+public class TdrPatchDataResponse
+{
+}
+
+public class TdrStoreDataBatchResponse
+{
 }
 
 public class DataItem
@@ -173,4 +190,5 @@ public class Pagination
         Limit = limit;
     }
 }
+#endregion
 

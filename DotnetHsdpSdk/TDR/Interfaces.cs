@@ -6,13 +6,13 @@ namespace DotnetHsdpSdk.TDR;
 
 public interface IHsdpTdr
 {
-    Task<IHsdpResponse<DataItems>> SearchDataItems(
-        TdrSearchDataRequestByUrl searchDataRequest,
+    Task<TdrSearchDataResponse> SearchDataItems(
+        TdrSearchDataByUrlRequest searchDataByUrlRequest,
         IIamToken token,
         string? requestId = null
     );
-    Task<IHsdpResponse<DataItems>> SearchDataItems(
-        TdrSearchDataRequest searchDataRequest,
+    Task<TdrSearchDataResponse> SearchDataItems(
+        TdrSearchDataByQueryRequest searchDataByQueryRequest,
         IIamToken token,
         string? requestId = null
     );

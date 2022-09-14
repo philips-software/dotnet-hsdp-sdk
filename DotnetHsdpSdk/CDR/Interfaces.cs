@@ -9,7 +9,7 @@ public interface IHsdpCdr
     Task<CdrReadResponse> Read(CdrReadVersionRequest readVersionRequest, IIamToken token);
     Task<CdrSearchResponse> Search(CdrSearchRequest searchRequest, IIamToken token);
     Task<CdrCreateResponse> Create(CdrCreateRequest createRequest, IIamToken token);
-    Task<CdrBatchOrTransactionResponse> CreateBatchOrTransaction(CdrCreateBatchOrTransactionRequest createBatchOrTransactionRequest, IIamToken token);
+    Task<CdrBatchOrTransactionResponse> BatchOrTransaction(CdrBatchOrTransactionRequest batchOrTransactionRequest, IIamToken token);
     Task<CdrDeleteResponse> Delete(CdrDeleteByIdRequest deleteRequest, IIamToken token);
     Task<CdrDeleteResponse> Delete(CdrDeleteByQueryRequest deleteRequest, IIamToken token);
     Task<CdrUpdateResponse> Update(CdrUpdateByIdRequest updateRequest, IIamToken token);
