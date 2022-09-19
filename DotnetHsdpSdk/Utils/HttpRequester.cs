@@ -5,13 +5,14 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace DotnetHsdpSdk.Utils;
 
 public interface IHttpRequester
 {
     Task<IHsdpResponse> HttpRequest(IHsdpRequest request);
-    Task<IHsdpResponse<T>> HttpRequest<T>(IHsdpRequest request) where T:class;
+    Task<IHsdpResponse<T>> HttpRequest<T>(IHsdpRequest request) where T : class;
 }
 
 public class HttpRequester : IHttpRequester
@@ -19,60 +20,99 @@ public class HttpRequester : IHttpRequester
     public async Task<IHsdpResponse> HttpRequest(IHsdpRequest request)
     {
         var responseMessage = await BuildAndExecuteRequest(request);
-        var keyValuePairs = responseMessage.Headers
-            .Select(pair => new KeyValuePair<string, string>(pair.Key, pair.Value.FirstOrDefault() ?? ""))
-            .ToList();
+        var headers = GetHeaders(responseMessage);
 
-        return new HsdpResponse(keyValuePairs);
+        return new HsdpResponse(responseMessage.StatusCode, headers);
     }
 
-    public async Task<IHsdpResponse<T>> HttpRequest<T>(IHsdpRequest request) where T:class
+    public async Task<IHsdpResponse<T>> HttpRequest<T>(IHsdpRequest request) where T : class
     {
-        var responseMessage = await BuildAndExecuteRequest(request);
+        // NOTE: only uncomment LogRequest and LogResponse when debugging locally!!!
+        // await LogRequest(request);
 
-        var keyValuePairs = responseMessage.Headers
-            .Select(pair => new KeyValuePair<string, string>(pair.Key, pair.Value.FirstOrDefault() ?? ""))
-            .ToList();
+        var responseMessage = await BuildAndExecuteRequest(request);
+        var headers = GetHeaders(responseMessage);
+
         try
         {
-            var responseBody = await responseMessage.Content.ReadFromJsonAsync<T>()
-                               ?? throw new HsdpRequestException("Response body should not be null");
-            return new HsdpResponse<T>(keyValuePairs, responseBody);
+            // await LogResponse(responseMessage);
+
+            var responseBody = typeof(T) == typeof(string)
+                ? await responseMessage.Content.ReadAsStringAsync() as T
+                : await responseMessage.Content.ReadFromJsonAsync<T>()
+                  ?? throw new HsdpRequestException(500, "Response body should not be null");
+            return new HsdpResponse<T>(responseMessage.StatusCode, headers, responseBody!);
         }
-        catch (NotSupportedException e) // When content type is not valid
+        catch (NotSupportedException e)
         {
-            throw new HsdpRequestException("Invalid content type", e);
+            throw new HsdpRequestException(500, "Invalid content type", e);
         }
-        catch (JsonException e) // Invalid JSON
+        catch (JsonException e)
         {
-            throw new HsdpRequestException("Invalid JSON", e);
+            throw new HsdpRequestException(500, "Invalid JSON", e);
         }
     }
-    
+
+    private static async Task LogRequest(IHsdpRequest request)
+    {
+        Console.WriteLine($"{request.Method.Method.ToUpper()}   {request.Path}");
+        foreach (var (key, value) in request.Headers) Console.WriteLine($"Header {key} : {value}");
+        if (request.Content != null)
+            foreach (var (key, value) in request.Content.Headers)
+                Console.WriteLine($"Header {key} : {string.Join(",", value)}");
+        foreach (var (key, value) in request.QueryParameters) Console.WriteLine($"QueryParameter {key} : {value}");
+        if (request.Content is JsonContent) await LogContent("Request", request.Content);
+    }
+
+    private static async Task LogResponse(HttpResponseMessage response)
+    {
+        Console.WriteLine($"StatusCode {response.StatusCode}");
+        foreach (var (key, value) in response.Headers) Console.WriteLine($"Header {key} : {string.Join(",", value)}");
+        await LogContent("Response", response.Content);
+    }
+
+    private static async Task LogContent(string description, HttpContent content)
+    {
+        var jsonString = await content.ReadAsStringAsync();
+        Console.WriteLine($"{description} content = {jsonString}");
+    }
+
     private static async Task<HttpResponseMessage> BuildAndExecuteRequest(IHsdpRequest request)
     {
-        var requestMessage = new HttpRequestMessage(request.Method, request.Path);
-        foreach (var (key, value) in request.Headers)
-        {
-            requestMessage.Headers.Add(key, value);
-        }
-
-        // TODO: handle query parameters
-        // if (request.QueryParameters != null)
-        // {
-        //     foreach (var (key, value) in request.QueryParameters)
-        //     {
-        //         requestMessage.Options.Set(key, value);
-        //     }
-        // }
+        var uri = ComposeUriFromPathAndQueryParameters(request.Path, request.QueryParameters);
+        var requestMessage = new HttpRequestMessage(request.Method, uri);
+        foreach (var (key, value) in request.Headers) requestMessage.Headers.Add(key, value);
         requestMessage.Content = request.Content;
-        
+
         using var client = new HttpClient();
-        var responseMessage = await client.SendAsync(requestMessage);
-        if (!responseMessage.IsSuccessStatusCode)
+        return await client.SendAsync(requestMessage);
+    }
+
+    private static List<KeyValuePair<string, string>> GetHeaders(HttpResponseMessage responseMessage)
+    {
+        var keyValuePairs = responseMessage.Headers
+            .Select(pair => KeyValuePair.Create(pair.Key, pair.Value.FirstOrDefault() ?? ""))
+            .ToList();
+        // LastModified not part of the responseMessage.Headers; we need to get that separately from the Content.Headers
+        if (responseMessage.Content.Headers.LastModified != null)
+            keyValuePairs.Add(KeyValuePair.Create("Last-Modified",
+                responseMessage.Content.Headers.LastModified.ToString()!));
+
+        return keyValuePairs;
+    }
+
+    private static Uri ComposeUriFromPathAndQueryParameters(Uri path,
+        List<KeyValuePair<string, string>> queryParameters)
+    {
+        var builder = new UriBuilder(path)
         {
-            throw new HsdpRequestException($"Request failed with status {responseMessage.StatusCode}, message {await responseMessage.Content.ReadAsStringAsync()}");
-        }
-        return responseMessage;
+            Port = -1
+        };
+        var query = HttpUtility.ParseQueryString(builder.Query);
+        foreach (var (key, value) in queryParameters) query[key] = value;
+
+        builder.Query = query.ToString();
+        var uri = builder.ToString();
+        return new Uri(uri);
     }
 }

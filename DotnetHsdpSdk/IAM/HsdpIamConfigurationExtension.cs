@@ -1,4 +1,3 @@
-using System;
 using DotnetHsdpSdk.Utils;
 using Microsoft.Extensions.Configuration;
 
@@ -15,6 +14,6 @@ public static class HsdpIamConfigurationExtension
         Validate.NotNull(iamUrl, $"{key}:url");
         Validate.NotNull(iamClientId, $"{key}:clientId");
         Validate.NotNull(iamClientSecret, $"{key}:clientSecret");
-        return new HsdpIamConfiguration(new Uri(iamUrl), iamClientId, iamClientSecret);
+        return new HsdpIamConfiguration(iamUrl, iamClientId, iamClientSecret);
     }
 }

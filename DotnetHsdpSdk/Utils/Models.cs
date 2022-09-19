@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 
 namespace DotnetHsdpSdk.Utils;
@@ -23,7 +24,7 @@ internal class HsdpRequest : IHsdpRequest
         Method = method;
         Path = path;
     }
-    
+
     public HttpMethod Method { get; }
     public Uri Path { get; }
     public List<KeyValuePair<string, string>> Headers { get; set; } = new();
@@ -34,33 +35,44 @@ internal class HsdpRequest : IHsdpRequest
 public interface IHsdpResponse
 
 {
+    public int StatusCode { get; }
     public List<KeyValuePair<string, string>> Headers { get; }
 }
 
-public interface IHsdpResponse<T> where T:class
+public interface IHsdpResponse<out T> where T : class
 {
+    public int StatusCode { get; }
     public List<KeyValuePair<string, string>> Headers { get; }
     public T Body { get; }
 }
 
-internal class HsdpResponse: IHsdpResponse
+internal class HsdpResponse : IHsdpResponse
 {
-    public HsdpResponse(List<KeyValuePair<string, string>> headers)
+    public HsdpResponse(HttpStatusCode statusCode, List<KeyValuePair<string, string>> headers)
     {
+        StatusCode = (int) statusCode;
         Headers = headers;
     }
 
+    public int StatusCode { get; }
     public List<KeyValuePair<string, string>> Headers { get; }
 }
 
-internal class HsdpResponse<T>: IHsdpResponse<T> where T:class
+internal class HsdpResponse<T> : IHsdpResponse<T> where T : class
 {
-    public HsdpResponse(List<KeyValuePair<string, string>> headers, T body)
+    public HsdpResponse(HttpStatusCode statusCode, List<KeyValuePair<string, string>> headers, T body)
     {
+        StatusCode = (int) statusCode;
         Headers = headers;
         Body = body;
     }
 
+    public int StatusCode { get; }
     public List<KeyValuePair<string, string>> Headers { get; }
     public T Body { get; }
+}
+
+public static class InternalApiError
+{
+    public const int StatusCode = 500;
 }

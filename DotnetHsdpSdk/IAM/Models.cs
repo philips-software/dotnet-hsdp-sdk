@@ -7,9 +7,9 @@ namespace DotnetHsdpSdk.IAM;
 
 public class HsdpIamConfiguration
 {
-    public HsdpIamConfiguration(Uri iamEndpoint, string clientId, string clientSecret)
+    public HsdpIamConfiguration(string iamEndpoint, string clientId, string clientSecret)
     {
-        Validate.NotNull(iamEndpoint, nameof(iamEndpoint));
+        Validate.NotNullOrEmpty(iamEndpoint, nameof(iamEndpoint));
         Validate.NotNullOrEmpty(clientId, nameof(clientId));
         Validate.NotNull(clientSecret, nameof(clientSecret));
 
@@ -18,7 +18,7 @@ public class HsdpIamConfiguration
         BasicAuthentication = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{clientId}:{clientSecret}"));
     }
 
-    public Uri IamEndpoint { get; }
+    public string IamEndpoint { get; }
     internal string BasicAuthentication { get; }
 }
 
@@ -72,7 +72,7 @@ public class Organization
     public List<string> Groups { get; set; } = new();
 }
 
-public class TokenMetadata
+public class IamTokenMetadata
 {
     public bool IsActive { get; set; }
     public string Scopes { get; set; } = "";
@@ -95,7 +95,7 @@ public class Actor
     public string Sub { get; set; } = "";
 }
 
-public class HsdpUserInfo
+public class IamUserInfo
 {
     public string Subject { get; set; } = "";
     public string Name { get; set; } = "";

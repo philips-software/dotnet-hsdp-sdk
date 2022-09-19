@@ -1,39 +1,24 @@
 using System.Threading.Tasks;
 using DotnetHsdpSdk.IAM;
-using DotnetHsdpSdk.Utils;
 
 namespace DotnetHsdpSdk.TDR;
 
 public interface IHsdpTdr
 {
-    Task<IHsdpResponse<DataItems>> SearchDataItems(
-        TdrSearchDataRequestByUrl searchDataRequest,
+    Task<TdrSearchDataResponse> SearchDataItems(
+        TdrSearchDataByUrlRequest request,
         IIamToken token,
         string? requestId = null
     );
-    Task<IHsdpResponse<DataItems>> SearchDataItems(
-        TdrSearchDataRequest searchDataRequest,
+
+    Task<TdrSearchDataResponse> SearchDataItems(
+        TdrSearchDataByQueryRequest request,
         IIamToken token,
         string? requestId = null
     );
-    Task StoreDataItem(
-        TdrStoreDataRequest storeDataRequest,
-        IIamToken token,
-        string? requestId = null
-    );
-    Task DeleteDataItem(
-        TdrDeleteDataRequest deleteDataRequest,
-        IIamToken token,
-        string? requestId = null
-    );
-    Task PatchDataItem(
-        TdrPatchDataRequest patchDataRequest,
-        IIamToken token,
-        string? requestId = null
-    );
-    Task StoreDataItems(
-        TdrStoreDataBatchRequest storeDataRequest,
-        IIamToken token,
-        string? requestId = null
-    );
+
+    Task StoreDataItem(TdrStoreDataRequest request, IIamToken token, string? requestId = null);
+    Task DeleteDataItem(TdrDeleteDataRequest request, IIamToken token, string? requestId = null);
+    Task PatchDataItem(TdrPatchDataRequest request, IIamToken token, string? requestId = null);
+    Task StoreDataItems(TdrStoreDataBatchRequest request, IIamToken token, string? requestId = null);
 }

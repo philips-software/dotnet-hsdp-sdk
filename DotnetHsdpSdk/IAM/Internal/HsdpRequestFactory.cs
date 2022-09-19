@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
-using System.Security.Authentication;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 using DotnetHsdpSdk.Utils;
-using Microsoft.IdentityModel.Tokens;
 
 namespace DotnetHsdpSdk.IAM.Internal;
 
-public interface IRequestFactory
+public interface IHsdpRequestFactory
 {
     IHsdpRequest CreateServiceLoginRequest(IamServiceLoginRequest serviceLoginRequest);
     IHsdpRequest CreateUserLoginRequest(IamUserLoginRequest userLoginRequest);
@@ -20,31 +15,36 @@ public interface IRequestFactory
     IHsdpRequest CreateUserInfoRequest(IIamToken token);
 }
 
-internal class RequestFactory : IRequestFactory
+internal class HsdpRequestFactory : IHsdpRequestFactory
 {
     private const string TokenPath = "authorize/oauth2/token";
     private const string RevokePath = "authorize/oauth2/revoke";
     private const string IntrospectPath = "authorize/oauth2/introspect";
     private const string UserInfoPath = "authorize/oauth2/userinfo";
-
-    private readonly Uri _iamEndpoint;
     private readonly string _basicAuthentication;
 
-    public RequestFactory(HsdpIamConfiguration configuration)
+    private readonly string _iamEndpoint;
+    private readonly IJwtSecurityTokenProvider _securityTokenProvider;
+
+    public HsdpRequestFactory(HsdpIamConfiguration configuration, IJwtSecurityTokenProvider securityTokenProvider)
     {
         _iamEndpoint = configuration.IamEndpoint;
         _basicAuthentication = configuration.BasicAuthentication;
+        _securityTokenProvider = securityTokenProvider;
     }
 
     public IHsdpRequest CreateServiceLoginRequest(IamServiceLoginRequest serviceLoginRequest)
     {
         return CreateRequest(
             HttpMethod.Post,
-            new Uri(_iamEndpoint, TokenPath),
+            new Uri($"{_iamEndpoint}/{TokenPath}"),
             HeadersForNoAuth("2"),
-            new List<KeyValuePair<string, string>> {
+            new List<KeyValuePair<string, string>>
+            {
                 new("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer"),
-                new("assertion", GenerateJwtToken(serviceLoginRequest))
+                new("assertion", _securityTokenProvider.GenerateJwtToken(
+                    serviceLoginRequest.ServiceKey, serviceLoginRequest.ServiceAudience, serviceLoginRequest.ServiceId
+                ))
             }
         );
     }
@@ -53,9 +53,9 @@ internal class RequestFactory : IRequestFactory
     {
         return CreateRequest(
             HttpMethod.Post,
-            new Uri(_iamEndpoint, TokenPath),
+            new Uri($"{_iamEndpoint}/{TokenPath}"),
             HeadersForBasicAuth("2"),
-            new List<KeyValuePair<string, string>>()
+            new List<KeyValuePair<string, string>>
             {
                 new("grant_type", "password"),
                 new("username", userLoginRequest.Username),
@@ -68,9 +68,10 @@ internal class RequestFactory : IRequestFactory
     {
         return CreateRequest(
             HttpMethod.Post,
-            new Uri(_iamEndpoint, TokenPath),
+            new Uri($"{_iamEndpoint}/{TokenPath}"),
             HeadersForBasicAuth("2"),
-            new List<KeyValuePair<string, string>> {
+            new List<KeyValuePair<string, string>>
+            {
                 new("grant_type", "refresh_token"),
                 new("refresh_token", token.RefreshToken!)
             }
@@ -81,7 +82,7 @@ internal class RequestFactory : IRequestFactory
     {
         return CreateRequest(
             HttpMethod.Post,
-            new Uri(_iamEndpoint, RevokePath),
+            new Uri($"{_iamEndpoint}/{RevokePath}"),
             HeadersForBasicAuth("2"),
             new List<KeyValuePair<string, string>>
             {
@@ -94,7 +95,7 @@ internal class RequestFactory : IRequestFactory
     {
         return CreateRequest(
             HttpMethod.Post,
-            new Uri(_iamEndpoint, IntrospectPath),
+            new Uri($"{_iamEndpoint}/{IntrospectPath}"),
             HeadersForBasicAuth("4"),
             new List<KeyValuePair<string, string>>
             {
@@ -107,7 +108,7 @@ internal class RequestFactory : IRequestFactory
     {
         return CreateRequest(
             HttpMethod.Get,
-            new Uri(_iamEndpoint, UserInfoPath),
+            new Uri($"{_iamEndpoint}/{UserInfoPath}"),
             HeadersForBearerAuth("2", token.AccessToken),
             new List<KeyValuePair<string, string>>()
         );
@@ -121,16 +122,13 @@ internal class RequestFactory : IRequestFactory
     )
     {
         var hsdpRequest = new HsdpRequest(method, path);
-        foreach (var (key, value) in headers)
-        {
-            hsdpRequest.Headers.Add(new KeyValuePair<string, string>(key, value));
-        }
+        foreach (var (key, value) in headers) hsdpRequest.Headers.Add(KeyValuePair.Create(key, value));
         hsdpRequest.Content = new FormUrlEncodedContent(urlFormParameters);
 
         return hsdpRequest;
     }
 
-    private static List<KeyValuePair<string, string>> HeadersForNoAuth(string version)
+    private static IEnumerable<KeyValuePair<string, string>> HeadersForNoAuth(string version)
     {
         return new List<KeyValuePair<string, string>>
         {
@@ -139,7 +137,7 @@ internal class RequestFactory : IRequestFactory
         };
     }
 
-    private List<KeyValuePair<string, string>> HeadersForBasicAuth(string version)
+    private IEnumerable<KeyValuePair<string, string>> HeadersForBasicAuth(string version)
     {
         return new List<KeyValuePair<string, string>>
         {
@@ -149,7 +147,7 @@ internal class RequestFactory : IRequestFactory
         };
     }
 
-    private static List<KeyValuePair<string, string>> HeadersForBearerAuth(string version, string accessToken)
+    private static IEnumerable<KeyValuePair<string, string>> HeadersForBearerAuth(string version, string accessToken)
     {
         return new List<KeyValuePair<string, string>>
         {
@@ -157,36 +155,5 @@ internal class RequestFactory : IRequestFactory
             new("Authorization", $"Bearer {accessToken}"),
             new("Accept", "application/json")
         };
-    }
-
-    private static string GenerateJwtToken(IamServiceLoginRequest serviceLoginRequest)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var privateKeyBase64 = Regex.Replace(serviceLoginRequest.ServiceKey, "\n", "");
-        privateKeyBase64 = Regex.Replace(privateKeyBase64, "-----BEGIN RSA PRIVATE KEY-----", "");
-        privateKeyBase64 = Regex.Replace(privateKeyBase64, "-----END RSA PRIVATE KEY-----", "");
-        try
-        {
-            var privateKey = Convert.FromBase64String(privateKeyBase64);
-            using var rsa = RSA.Create();
-            rsa.ImportRSAPrivateKey(privateKey, out _);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Audience = serviceLoginRequest.ServiceAudience,
-                Issuer = serviceLoginRequest.ServiceId,
-                Expires = DateTime.UtcNow.AddMinutes(5),
-                SigningCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256)
-                {
-                    CryptoProviderFactory = new CryptoProviderFactory {CacheSignatureProviders = false}
-                }
-            };
-            var token = tokenHandler.CreateJwtSecurityToken(tokenDescriptor);
-            token.Payload.Add("sub", serviceLoginRequest.ServiceId);
-            return tokenHandler.WriteToken(token);
-        }
-        catch (Exception e)
-        {
-            throw new AuthenticationException("Failed to create service token: " + e);
-        }
     }
 }

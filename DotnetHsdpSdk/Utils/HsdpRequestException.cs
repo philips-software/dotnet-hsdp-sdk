@@ -4,15 +4,20 @@ namespace DotnetHsdpSdk.Utils;
 
 public class HsdpRequestException : Exception
 {
-    public HsdpRequestException()
+    public HsdpRequestException(int statusCode)
     {
+        StatusCode = statusCode;
     }
-    
-    public HsdpRequestException(string? message): base(message)
+
+    public HsdpRequestException(int statusCode, string? message) : base(message)
     {
+        StatusCode = statusCode;
     }
-    
-    public HsdpRequestException(string message, Exception? ex): base(message, ex)
+
+    public HsdpRequestException(int statusCode, string message, Exception? ex) : base(message, ex)
     {
+        StatusCode = statusCode;
     }
+
+    public int StatusCode { get; }
 }
