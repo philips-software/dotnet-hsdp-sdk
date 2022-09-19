@@ -15,7 +15,7 @@ public class BundleForGetDataItemResponseTest
         Assert.Multiple(() =>
             {
                 Assert.NotNull(result);
-                Assert.AreEqual(0, result._startAt);
+                Assert.AreEqual(0, result!._startAt);
                 Assert.AreEqual(1, result.total);
                 Assert.AreEqual("searchset", result.type);
                 Assert.AreEqual("Bundle", result.resourceType);

@@ -24,7 +24,7 @@ internal class HsdpRequest : IHsdpRequest
         Method = method;
         Path = path;
     }
-    
+
     public HttpMethod Method { get; }
     public Uri Path { get; }
     public List<KeyValuePair<string, string>> Headers { get; set; } = new();
@@ -39,14 +39,14 @@ public interface IHsdpResponse
     public List<KeyValuePair<string, string>> Headers { get; }
 }
 
-public interface IHsdpResponse<out T> where T:class
+public interface IHsdpResponse<out T> where T : class
 {
     public int StatusCode { get; }
     public List<KeyValuePair<string, string>> Headers { get; }
     public T Body { get; }
 }
 
-internal class HsdpResponse: IHsdpResponse
+internal class HsdpResponse : IHsdpResponse
 {
     public HsdpResponse(HttpStatusCode statusCode, List<KeyValuePair<string, string>> headers)
     {
@@ -58,7 +58,7 @@ internal class HsdpResponse: IHsdpResponse
     public List<KeyValuePair<string, string>> Headers { get; }
 }
 
-internal class HsdpResponse<T>: IHsdpResponse<T> where T:class
+internal class HsdpResponse<T> : IHsdpResponse<T> where T : class
 {
     public HsdpResponse(HttpStatusCode statusCode, List<KeyValuePair<string, string>> headers, T body)
     {
@@ -70,4 +70,9 @@ internal class HsdpResponse<T>: IHsdpResponse<T> where T:class
     public int StatusCode { get; }
     public List<KeyValuePair<string, string>> Headers { get; }
     public T Body { get; }
+}
+
+public static class InternalApiError
+{
+    public const int StatusCode = 500;
 }

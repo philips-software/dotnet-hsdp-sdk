@@ -5,15 +5,15 @@ namespace DotnetHsdpSdk.CDR;
 
 public interface IHsdpCdr
 {
-    Task<CdrReadResponse> Read(CdrReadRequest readRequest, IIamToken token);
-    Task<CdrReadResponse> Read(CdrReadVersionRequest readVersionRequest, IIamToken token);
-    Task<CdrSearchResponse> Search(CdrSearchRequest searchRequest, IIamToken token);
-    Task<CdrCreateResponse> Create(CdrCreateRequest createRequest, IIamToken token);
-    Task<CdrBatchOrTransactionResponse> BatchOrTransaction(CdrBatchOrTransactionRequest batchOrTransactionRequest, IIamToken token);
-    Task<CdrDeleteResponse> Delete(CdrDeleteByIdRequest deleteRequest, IIamToken token);
-    Task<CdrDeleteResponse> Delete(CdrDeleteByQueryRequest deleteRequest, IIamToken token);
-    Task<CdrUpdateResponse> Update(CdrUpdateByIdRequest updateRequest, IIamToken token);
-    Task<CdrUpdateResponse> Update(CdrUpdateByQueryRequest updateRequest, IIamToken token);
-    Task<CdrPatchResponse> Patch(CdrPatchByIdRequest patchRequest, IIamToken token);
-    Task<CdrPatchResponse> Patch(CdrPatchByQueryRequest patchRequest, IIamToken token);
+    Task<CdrReadResponse> Read(CdrReadRequest request, IIamToken token);
+    Task<CdrReadResponse> Read(CdrReadVersionRequest request, IIamToken token);
+    Task<CdrSearchResponse> Search(CdrSearchRequest request, IIamToken token);
+    Task<CdrCreateResponse> Create(CdrCreateRequest request, IIamToken token);
+    Task<CdrBatchOrTransactionResponse> BatchOrTransaction(CdrBatchOrTransactionRequest request, IIamToken token);
+    Task<CdrDeleteResponse> Delete(CdrDeleteByIdRequest request, IIamToken token);
+    Task<CdrDeleteResponse> Delete(CdrDeleteByQueryRequest request, IIamToken token);
+    Task<CdrUpdateResponse> Update(CdrUpdateByIdRequest request, IIamToken token);
+    Task<CdrUpdateResponse> Update(CdrUpdateByQueryRequest request, IIamToken token);
+    Task<CdrPatchResponse> Patch(CdrPatchByIdRequest request, IIamToken token);
+    Task<CdrPatchResponse> Patch(CdrPatchByQueryRequest request, IIamToken token);
 }

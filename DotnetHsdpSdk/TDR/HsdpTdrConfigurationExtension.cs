@@ -1,4 +1,3 @@
-using System;
 using DotnetHsdpSdk.Utils;
 using Microsoft.Extensions.Configuration;
 
@@ -11,6 +10,6 @@ public static class HsdpTdrConfigurationExtension
     {
         var tdrUrl = configuration[$"{key}:url"];
         Validate.NotNull(tdrUrl, $"{key}:url");
-        return new HsdpTdrConfiguration(new Uri(tdrUrl));
+        return new HsdpTdrConfiguration(tdrUrl);
     }
 }

@@ -8,13 +8,13 @@ public class HsdpRequestException : Exception
     {
         StatusCode = statusCode;
     }
-    
-    public HsdpRequestException(int statusCode, string? message): base(message)
+
+    public HsdpRequestException(int statusCode, string? message) : base(message)
     {
         StatusCode = statusCode;
     }
-    
-    public HsdpRequestException(int statusCode, string message, Exception? ex): base(message, ex)
+
+    public HsdpRequestException(int statusCode, string message, Exception? ex) : base(message, ex)
     {
         StatusCode = statusCode;
     }

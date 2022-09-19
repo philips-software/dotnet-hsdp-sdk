@@ -9,8 +9,8 @@ public interface IHsdpIam
     Task<IIamToken> ServiceLogin(IamServiceLoginRequest serviceLoginRequest);
     Task<IIamToken> RefreshToken(IIamToken token);
     Task RevokeToken(IIamToken token);
-    Task<TokenMetadata> Introspect(IIamToken token);
-    Task<HsdpUserInfo> GetUserInfo(IIamToken token);
+    Task<IamTokenMetadata> Introspect(IIamToken token);
+    Task<IamUserInfo> GetUserInfo(IIamToken token);
 }
 
 public interface IIamToken

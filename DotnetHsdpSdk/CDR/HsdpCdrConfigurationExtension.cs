@@ -1,4 +1,3 @@
-using System;
 using DotnetHsdpSdk.Utils;
 using Microsoft.Extensions.Configuration;
 
@@ -12,6 +11,6 @@ public static class HsdpCdrConfigurationExtension
         var cdrUrl = configuration.GetMandatoryKey(key, "url");
         var fhirVersion = configuration.GetMandatoryKey(key, "fhirVersion");
         var mediaType = configuration.GetMandatoryKey(key, "mediaType");
-        return new HsdpCdrConfiguration(new Uri(cdrUrl), fhirVersion, mediaType);
+        return new HsdpCdrConfiguration(cdrUrl, fhirVersion, mediaType);
     }
 }

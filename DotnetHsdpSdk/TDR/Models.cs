@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Text.Json.Nodes;
 using DotnetHsdpSdk.Utils;
 
@@ -8,14 +6,14 @@ namespace DotnetHsdpSdk.TDR;
 
 public class HsdpTdrConfiguration
 {
-    public HsdpTdrConfiguration(Uri tdrEndpoint)
+    public HsdpTdrConfiguration(string tdrEndpoint)
     {
         Validate.NotNull(tdrEndpoint, nameof(tdrEndpoint));
 
         TdrEndpoint = tdrEndpoint;
     }
 
-    public Uri TdrEndpoint { get; }
+    public string TdrEndpoint { get; }
 }
 
 #region Requests
@@ -88,6 +86,13 @@ public class TdrStoreDataBatchResponse
 
 public class DataItem
 {
+    public DataItem(string timestamp, Coding dataType, string organization)
+    {
+        Timestamp = timestamp;
+        DataType = dataType;
+        Organization = organization;
+    }
+
     public string? Id { get; set; }
     public Meta? Meta { get; set; }
     public string Timestamp { get; set; }
@@ -109,86 +114,80 @@ public class DataItem
      * Therefore, it is exposed as a JsonObject which can be (de)serialized (from)to JSON.
      */
     public JsonObject? Data { get; set; }
+
     public Blob? Blob { get; set; }
     public string? DeleteTimestamp { get; set; }
     public string? CreationTimestamp { get; set; }
     public bool? Tombstone { get; set; }
     public SelfLink? Link { get; set; }
-
-    public DataItem(string timestamp, Coding dataType, string organization)
-    {
-        Timestamp = timestamp;
-        DataType = dataType;
-        Organization = organization;
-    }
 }
 
 public class Meta
 {
-    public string LastUpdated { get; set; }
-    public string VersionId { get; set; }
-
     public Meta(string lastUpdated, string versionId)
     {
         LastUpdated = lastUpdated;
         VersionId = versionId;
     }
+
+    public string LastUpdated { get; }
+    public string VersionId { get; }
 }
 
 public class Identifier
 {
-    public string? System { get; set; }
-    public string Value { get; set; }
-
     public Identifier(string? system, string value)
     {
         System = system;
         Value = value;
     }
+
+    public string? System { get; }
+    public string Value { get; }
 }
 
 public class Coding
 {
-    public string System { get; set; }
-    public string Code { get; set; }
-
     public Coding(string system, string code)
     {
         System = system;
         Code = code;
     }
+
+    public string System { get; }
+    public string Code { get; }
 }
 
 public class Blob
 {
-    public byte[] Data { get; set; }
-
     public Blob(byte[] data)
     {
         Data = data;
     }
+
+    public byte[] Data { get; }
 }
 
 public class SelfLink
 {
-    public string Self { get; set; }
-
     public SelfLink(string self)
     {
         Self = self;
     }
+
+    public string Self { get; }
 }
 
 public class Pagination
 {
-    public int Offset { get; set; }
-    public int Limit { get; set; }
-
     public Pagination(int offset, int limit)
     {
         Offset = offset;
         Limit = limit;
     }
-}
-#endregion
 
+    public int Offset { get; }
+    public int Limit { get; }
+}
+
+#endregion
