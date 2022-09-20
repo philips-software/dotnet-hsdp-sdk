@@ -62,7 +62,6 @@ internal class CdrResponseFactory : ICdrResponseFactory
 
     public CdrBatchOrTransactionResponse CreateCdrBatchOrTransactionResponse(IHsdpResponse<string> response)
     {
-        var body = response.Body ?? throw new HsdpRequestException(500, "Response body is missing");
         if (response.StatusCode.IsSuccess())
             return new CdrBatchOrTransactionResponse
             {

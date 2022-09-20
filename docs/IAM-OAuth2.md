@@ -41,7 +41,7 @@ and HsdpIam instances can be created manually.
 This is illustrated in next example, which also performs a user login and other implemented methods.
 
 ```csharp
-    var config = new HsdpIamConfiguration(new Uri("iam url"), "client id", "client secret");
+    var config = new HsdpIamConfiguration("iam url", "client id", "client secret");
     var iam = new HsdpIam(config);
 
     var token = await iam.UserLogin(new IamUserLoginRequest("username", "password"));
@@ -56,7 +56,7 @@ This is illustrated in next example, which also performs a user login and other 
 
 Next example shows how to log into IAM as a service:
 ```csharp
-    var config = new HsdpIamConfiguration(new Uri("iam url"), "client id", "client secret");
+    var config = new HsdpIamConfiguration("iam url", "client id", "client secret");
     var iam = new HsdpIam(config);
 
     var token = iam.ServiceLogin(new IamServiceLoginRequest("service key", "service audience", "service id"));

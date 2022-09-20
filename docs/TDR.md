@@ -38,7 +38,7 @@ This is illustrated in next example, which also performs a search for data items
 (including the query parameters for the request).
 
 ```csharp
-    var config = new HsdpTdrConfiguration(new Uri("tdr url"));
+    var config = new HsdpTdrConfiguration("tdr url");
     var tdr = new HsdpTdr(config);
 
     var token = ...; // from IAM user or service login
@@ -69,6 +69,6 @@ It can then be used in Startup.cs as follows:
 
 ```csharp
     var tdrUrl = Configuration["TdrConfiguration:url"];
-    var tdrConfiguration = new HsdpTdrConfiguration(new Uri(tdrUrl));
+    var tdrConfiguration = new HsdpTdrConfiguration(tdrUrl);
     ...
 ```
