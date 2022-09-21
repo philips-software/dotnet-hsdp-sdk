@@ -97,7 +97,6 @@ internal class CdrResponseFactory : ICdrResponseFactory
         {
             Status = response.StatusCode,
             Resource = Deserialize<DomainResource>(response.Body),
-            Location = response.Headers.Find(pair => pair.Key == "Location").Value,
             ETag = response.Headers.Find(pair => pair.Key == "ETag").Value,
             LastModified = response.Headers.Find(pair => pair.Key == "Last-Modified").Value
         };
@@ -109,7 +108,6 @@ internal class CdrResponseFactory : ICdrResponseFactory
         {
             Status = response.StatusCode,
             Resource = Deserialize<DomainResource>(response.Body),
-            Location = response.Headers.Find(pair => pair.Key == "Location").Value,
             ETag = response.Headers.Find(pair => pair.Key == "ETag").Value,
             LastModified = response.Headers.Find(pair => pair.Key == "Last-Modified").Value
         };

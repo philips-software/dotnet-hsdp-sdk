@@ -7,22 +7,28 @@ namespace DotnetHsdpSdk.TDR.Internal;
 #pragma warning disable IDE1006 // Naming Styles
 internal class BundleForGetDataItemResponse
 {
-    public string resourceType { get; set; }
-    public string type { get; set; }
+    public string resourceType { get; set; } = "";
+    public string type { get; set; } = "";
     public int total { get; set; }
     [JsonPropertyName("_startAt")] public int _startAt { get; set; }
-    public List<Link> link { get; set; }
-    public List<BundleEntryDataItem> entry { get; set; }
+    public List<Link>? link { get; set; }
+    public List<BundleEntryDataItem>? entry { get; set; }
 }
 
 internal class Link
 {
-    public string relation { get; set; }
-    public string url { get; set; }
+    public string relation { get; set; } = "";
+    public string url { get; set; } = "";
 }
 
 internal class BundleEntryDataItem
 {
+    public BundleEntryDataItem(string fullUrl, DataItem resource)
+    {
+        this.fullUrl = fullUrl;
+        this.resource = resource;
+    }
+
     public string fullUrl { get; set; }
     public DataItem resource { get; set; }
 }

@@ -63,9 +63,9 @@ public class TdrStoreDataBatchRequest
 public class TdrSearchDataResponse
 {
     public int Status { get; set; }
-    public List<DataItem> DataItems { get; set; }
-    public Pagination Pagination { get; set; }
-    public string RequestId { get; set; }
+    public List<DataItem> DataItems { get; set; } = new ();
+    public Pagination Pagination { get; set; } = new (0, 0);
+    public string RequestId { get; set; } = "";
 }
 
 public class TdrStoreDataResponse

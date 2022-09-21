@@ -340,9 +340,9 @@ public class CdrCreateResponse
 {
     public int Status { get; set; }
     public DomainResource? Resource { get; set; }
-    public string Location { get; set; }
-    public string ETag { get; set; }
-    public string LastModified { get; set; }
+    public string Location { get; set; } = "";
+    public string ETag { get; set; } = "";
+    public string LastModified { get; set; } = "";
 }
 
 public class CdrBatchOrTransactionResponse
@@ -362,18 +362,16 @@ public class CdrUpdateResponse
 {
     public int Status { get; set; }
     public DomainResource? Resource { get; set; }
-    public string Location { get; set; }
-    public string ETag { get; set; }
-    public string LastModified { get; set; }
+    public string ETag { get; set; } = "";
+    public string LastModified { get; set; } = "";
 }
 
 public class CdrPatchResponse
 {
     public int Status { get; set; }
     public DomainResource? Resource { get; set; }
-    public string Location { get; set; }
-    public string ETag { get; set; }
-    public string LastModified { get; set; }
+    public string ETag { get; set; } = "";
+    public string LastModified { get; set; } = "";
 }
 
 #endregion

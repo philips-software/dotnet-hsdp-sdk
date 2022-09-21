@@ -36,7 +36,7 @@ internal class TdrResponseFactory : ITdrResponseFactory
     {
         var offset = 0;
         var limit = DefaultLimit;
-        var link = response.link.FirstOrDefault(link => link.relation == "next");
+        var link = response.link?.FirstOrDefault(link => link.relation == "next");
         if (link != null)
         {
             limit = ExtractMatch(link, @"_count=(\d+)", DefaultLimit);

@@ -449,7 +449,6 @@ public class CdrResponseFactoryTests
         
         Assert.AreEqual(200, response.Status);
         Assert.IsInstanceOf<Observation>(response.Resource);
-        Assert.AreEqual("location", response.Location);
         Assert.AreEqual("etag", response.ETag);
         Assert.AreEqual("lastModified", response.LastModified);
     }
@@ -467,7 +466,6 @@ public class CdrResponseFactoryTests
         
         Assert.AreEqual(401, response.Status);
         Assert.IsInstanceOf<OperationOutcome>(response.Resource);
-        Assert.IsNull(response.Location);
         Assert.IsNull(response.ETag);
         Assert.IsNull(response.LastModified);
     }
@@ -539,7 +537,6 @@ public class CdrResponseFactoryTests
         
         Assert.AreEqual(200, response.Status);
         Assert.IsInstanceOf<Observation>(response.Resource);
-        Assert.AreEqual("location", response.Location);
         Assert.AreEqual("etag", response.ETag);
         Assert.AreEqual("lastModified", response.LastModified);
     }
@@ -557,7 +554,6 @@ public class CdrResponseFactoryTests
         
         Assert.AreEqual(401, response.Status);
         Assert.IsInstanceOf<OperationOutcome>(response.Resource);
-        Assert.IsNull(response.Location);
         Assert.IsNull(response.ETag);
         Assert.IsNull(response.LastModified);
     }
