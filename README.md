@@ -42,7 +42,7 @@ $ dotnet test
 
 ## Known issues
 
-*There are still some compiler warnings that should be fixed.*
+At this moment, there are no known issues.
 
 ## Contact / Getting help
 
