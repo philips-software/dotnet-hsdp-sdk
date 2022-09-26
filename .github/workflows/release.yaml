@@ -24,4 +24,4 @@ jobs:
       - name: Create the package
         run: dotnet pack --configuration Release -p:Version=$VERSION DotnetHsdpSdk
       - name: Publish the package to GPR
-        run: dotnet nuget push DotnetHsdpSdk/bin/Release/net6.0/*.nupkg --source nuget.org --api-key ${{secrets.NUGET_TOKEN}}
+        run: dotnet nuget push DotnetHsdpSdk/bin/Release/*.nupkg --source nuget.org --api-key ${{secrets.NUGET_TOKEN}}
