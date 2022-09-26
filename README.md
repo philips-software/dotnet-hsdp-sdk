@@ -1,3 +1,5 @@
+[![build and test](https://github.com/philips-software/dotnet-hsdp-sdk/actions/workflows/build.yaml/badge.svg)](https://github.com/philips-software/dotnet-hsdp-sdk/actions/workflows/build.yaml)
+
 # HSDP SDK for Dotnet 6.0
 
 This project provides a Software Development Kit that makes interaction with Philips HSDP APIs easy for a DotNet programmer.
