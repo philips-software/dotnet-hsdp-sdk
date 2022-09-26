@@ -1,0 +1,27 @@
+name: Upload dotnet package
+
+on:
+  release:
+    types: [created]
+
+env:
+  DOTNET_VERSION: '6.0.102' # The .NET SDK version to use
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET Core SDK ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Set VERSION variable from tag
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+      - name: Create the package
+        run: dotnet pack --configuration Release -p:Version=$VERSION DotnetHsdpSdk
+      - name: Publish the package to GPR
+        run: dotnet nuget push DotnetHsdpSdk/bin/Release/net6.0/*.nupkg --source nuget.org --api-key ${{secrets.NUGET_TOKEN}}
