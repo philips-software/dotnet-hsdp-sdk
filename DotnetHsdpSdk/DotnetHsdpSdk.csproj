@@ -4,6 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <PackageReadmeFile>PackageREADME.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,6 +17,7 @@
 
     <ItemGroup>
       <Folder Include=".github\workflows" />
+        <None Include="PackageREADME.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 
 </Project>
