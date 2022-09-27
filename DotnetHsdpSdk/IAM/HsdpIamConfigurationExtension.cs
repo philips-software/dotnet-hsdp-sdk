@@ -5,8 +5,7 @@ namespace DotnetHsdpSdk.IAM;
 
 public static class HsdpIamConfigurationExtension
 {
-    public static HsdpIamConfiguration FromAppSettings(this HsdpIamConfiguration @this, IConfiguration configuration,
-        string key)
+    public static HsdpIamConfiguration FromAppSettings(IConfiguration configuration, string key)
     {
         var iamUrl = configuration[$"{key}:url"];
         var iamClientId = configuration[$"{key}:clientId"];

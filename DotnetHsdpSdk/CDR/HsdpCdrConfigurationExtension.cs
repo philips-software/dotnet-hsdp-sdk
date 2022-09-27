@@ -5,8 +5,7 @@ namespace DotnetHsdpSdk.CDR;
 
 public static class HsdpCdrConfigurationExtension
 {
-    public static HsdpCdrConfiguration FromAppSettings(this HsdpCdrConfiguration @this, IConfiguration configuration,
-        string key)
+    public static HsdpCdrConfiguration FromAppSettings(IConfiguration configuration, string key)
     {
         var cdrUrl = configuration.GetMandatoryKey(key, "url");
         var fhirVersion = configuration.GetMandatoryKey(key, "fhirVersion");

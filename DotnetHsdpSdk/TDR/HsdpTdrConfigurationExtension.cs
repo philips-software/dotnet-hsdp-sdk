@@ -5,8 +5,7 @@ namespace DotnetHsdpSdk.TDR;
 
 public static class HsdpTdrConfigurationExtension
 {
-    public static HsdpTdrConfiguration FromAppSettings(this HsdpTdrConfiguration @this, IConfiguration configuration,
-        string key)
+    public static HsdpTdrConfiguration FromAppSettings(IConfiguration configuration, string key)
     {
         var tdrUrl = configuration[$"{key}:url"];
         Validate.NotNull(tdrUrl, $"{key}:url");
