@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
@@ -19,7 +21,7 @@ public class HttpRequester : IHttpRequester
 {
     public async Task<IHsdpResponse> HttpRequest(IHsdpRequest request)
     {
-        var responseMessage = await BuildAndExecuteRequest(request);
+        var responseMessage = await BuildAndExecuteRequest(request).ConfigureAwait(false);
         var headers = GetHeaders(responseMessage);
 
         return new HsdpResponse(responseMessage.StatusCode, headers);
@@ -30,7 +32,7 @@ public class HttpRequester : IHttpRequester
         // NOTE: only uncomment LogRequest and LogResponse when debugging locally!!!
         // await LogRequest(request);
 
-        var responseMessage = await BuildAndExecuteRequest(request);
+        var responseMessage = await BuildAndExecuteRequest(request).ConfigureAwait(false);
         var headers = GetHeaders(responseMessage);
 
         try
@@ -108,11 +110,14 @@ public class HttpRequester : IHttpRequester
         {
             Port = -1
         };
-        var query = HttpUtility.ParseQueryString(builder.Query);
-        foreach (var (key, value) in queryParameters) query[key] = value;
+        var queryBuilder = new StringBuilder();
+        foreach (var (key, value) in queryParameters)
+        {
+            queryBuilder.Append(queryBuilder.Length == 0 ? "?" : "&");
+            queryBuilder.Append($"{Uri.EscapeDataString(key)}={Uri.EscapeDataString(value)}");
+        }
 
-        builder.Query = query.ToString();
-        var uri = builder.ToString();
-        return new Uri(uri);
+        builder.Query = queryBuilder.ToString();
+        return new Uri(builder.ToString());
     }
 }
