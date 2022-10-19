@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace DotnetHsdpSdk.Utils;
 
@@ -106,11 +104,11 @@ public class HttpRequester : IHttpRequester
     private static Uri ComposeUriFromPathAndQueryParameters(Uri path,
         List<KeyValuePair<string, string>> queryParameters)
     {
-        var builder = new UriBuilder(path)
+        var builder = new UriBuilder(path.GetLeftPart(UriPartial.Path))
         {
             Port = -1
         };
-        var queryBuilder = new StringBuilder();
+        var queryBuilder = new StringBuilder(path.Query);
         foreach (var (key, value) in queryParameters)
         {
             queryBuilder.Append(queryBuilder.Length == 0 ? "?" : "&");
