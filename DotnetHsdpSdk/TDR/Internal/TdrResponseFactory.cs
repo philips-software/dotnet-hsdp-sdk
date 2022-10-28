@@ -20,8 +20,8 @@ internal class TdrResponseFactory : ITdrResponseFactory
             throw new HsdpRequestException(hsdpResponse.StatusCode, hsdpResponse.Body);
 
         var response = Deserialize<BundleForGetDataItemResponse>(hsdpResponse.Body);
-        if (response.entry == null || response.link == null)
-            throw new HsdpRequestException(InternalApiError.StatusCode, "Response has wrong format");
+        if (response.entry == null)
+            throw new HsdpRequestException(InternalApiError.StatusCode, "Response has no entries");
         var requestId = hsdpResponse.Headers.Find(header => header.Key.ToLower() == "hsdp-request-id").Value;
         return new TdrSearchDataResponse
         {

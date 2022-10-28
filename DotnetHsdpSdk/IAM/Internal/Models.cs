@@ -32,7 +32,7 @@ internal class IamToken : IIamToken
 
     public bool IsExpired()
     {
-        return ExpiresUtc < DateTime.UtcNow;
+        return ExpiresUtc < DateTime.UtcNow + TimeSpan.FromSeconds(30);
     }
 
     public bool IsValid()
