@@ -2,6 +2,7 @@ using DotnetHsdpSdk.CDR;
 using DotnetHsdpSdk.CDR.Internal;
 using DotnetHsdpSdk.IAM;
 using DotnetHsdpSdk.Utils;
+using Hl7.Fhir.Rest;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Moq;
 using NUnit.Framework;
@@ -116,12 +117,37 @@ public class HsdpRequestFactoryTests
             Assert.IsInstanceOf<HsdpRequest>(request);
             Assert.AreEqual(new Uri("https://endpoint.com/Observation"), request.Path);
             Assert.AreEqual(HttpMethod.Get, request.Method);
-            Assert.AreEqual(3, request.Headers.Count);
+            Assert.AreEqual(4, request.Headers.Count);
             Assert.Contains(KeyValuePair.Create("Authorization", "Bearer accessToken"), request.Headers);
             Assert.Contains(KeyValuePair.Create("Accept", FullFhirMediaType), request.Headers);
             Assert.Contains(KeyValuePair.Create("api-version", "1"), request.Headers);
+            Assert.Contains(KeyValuePair.Create("Prefer", "handling=strict"), request.Headers);
             Assert.AreEqual(0, request.QueryParameters.Count);
         });
+    }
+
+    [Test]
+    public void CreationFromACdrSearchRequestWithGetAndStrictSearchHandlingShouldReturnAHsdpRequestWithStrictHandlingHeader()
+    {
+        var request = _hsdpRequestFactory.Create(new CdrSearchRequest(
+            resourceType: "Observation",
+            method: SearchMethod.Get,
+            handlingPreference: SearchParameterHandling.Strict
+        ), _token.Object);
+
+        Assert.Contains(KeyValuePair.Create("Prefer", "handling=strict"), request.Headers);
+    }
+
+    [Test]
+    public void CreationFromACdrSearchRequestWithGetAndLenientSearchHandlingShouldReturnAHsdpRequestWithLenienttHandlingHeader()
+    {
+        var request = _hsdpRequestFactory.Create(new CdrSearchRequest(
+            resourceType: "Observation",
+            method: SearchMethod.Get,
+            handlingPreference: SearchParameterHandling.Lenient
+        ), _token.Object);
+
+        Assert.Contains(KeyValuePair.Create("Prefer", "handling=lenient"), request.Headers);
     }
 
     [Test]
@@ -171,14 +197,41 @@ public class HsdpRequestFactoryTests
             Assert.IsInstanceOf<HsdpRequest>(request);
             Assert.AreEqual(new Uri("https://endpoint.com/Observation/_search"), request.Path);
             Assert.AreEqual(HttpMethod.Post, request.Method);
-            Assert.AreEqual(3, request.Headers.Count);
+            Assert.AreEqual(4, request.Headers.Count);
             Assert.Contains(KeyValuePair.Create("Authorization", "Bearer accessToken"), request.Headers);
             Assert.Contains(KeyValuePair.Create("Accept", FullFhirMediaType), request.Headers);
             Assert.Contains(KeyValuePair.Create("api-version", "1"), request.Headers);
+            Assert.Contains(KeyValuePair.Create("Prefer", "handling=strict"), request.Headers);
             Assert.AreEqual(0, request.QueryParameters.Count);
             Assert.AreEqual("application/x-www-form-urlencoded", request.Content?.Headers.ContentType?.MediaType);
             Assert.AreEqual("", content);
         });
+    }
+
+    [Test]
+    public async Task CreationFromACdrSearchRequestWithPostAndStrictSearchHandlingShouldReturnAHsdpRequestWithStrictHandlingHeader()
+    {
+        var hsdpRequestFactory = new HsdpRequestFactory(new HsdpCdrConfiguration(CdrEndpoint, FhirVersion, FhirMediaType));
+        var request = hsdpRequestFactory.Create(new CdrSearchRequest(
+            resourceType: "Observation",
+            method: SearchMethod.Post,
+            handlingPreference: SearchParameterHandling.Strict
+        ), _token.Object);
+
+        Assert.Contains(KeyValuePair.Create("Prefer", "handling=strict"), request.Headers);
+    }
+
+    [Test]
+    public async Task CreationFromACdrSearchRequestWithPostAndLenientSearchHandlingShouldReturnAHsdpRequestWithLenientHandlingHeader()
+    {
+        var hsdpRequestFactory = new HsdpRequestFactory(new HsdpCdrConfiguration(CdrEndpoint, FhirVersion, FhirMediaType));
+        var request = hsdpRequestFactory.Create(new CdrSearchRequest(
+            resourceType: "Observation",
+            method: SearchMethod.Post,
+            handlingPreference: SearchParameterHandling.Lenient
+        ), _token.Object);
+
+        Assert.Contains(KeyValuePair.Create("Prefer", "handling=lenient"), request.Headers);
     }
 
     [Test]
@@ -269,7 +322,7 @@ public class HsdpRequestFactoryTests
         var request = _hsdpRequestFactory.Create(new CdrCreateRequest(
             resourceType: "Observation",
             resource: TestData.Observation,
-            preference: ReturnPreference.Representation
+            returnPreference: ReturnPreference.Representation
         ), _token.Object);
 
         Assert.Contains(KeyValuePair.Create("Prefer", "return=representation"), request.Headers);
@@ -308,7 +361,7 @@ public class HsdpRequestFactoryTests
     {
         var request = _hsdpRequestFactory.Create(new CdrBatchOrTransactionRequest(
             bundle: TestData.TransactionBundle,
-            preference: ReturnPreference.Representation
+            returnPreference: ReturnPreference.Representation
         ), _token.Object);
 
         Assert.Contains(KeyValuePair.Create("Prefer", "return=representation"), request.Headers);
@@ -431,7 +484,7 @@ public class HsdpRequestFactoryTests
             resourceType: "Observation",
             id: "ObservationId",
             resource: TestData.Observation,
-            preference: ReturnPreference.Representation
+            returnPreference: ReturnPreference.Representation
         ), _token.Object);
 
         Assert.Contains(KeyValuePair.Create("Prefer", "return=representation"), request.Headers);
@@ -499,7 +552,7 @@ public class HsdpRequestFactoryTests
                 new("key2", "value2")
             },
             resource: TestData.Observation,
-            preference: ReturnPreference.Representation
+            returnPreference: ReturnPreference.Representation
         ), _token.Object);
 
         Assert.Contains(KeyValuePair.Create("Prefer", "return=representation"), request.Headers);
@@ -578,7 +631,7 @@ public class HsdpRequestFactoryTests
             {
                 new("a", "b", "c", "d")
             },
-            preference: ReturnPreference.Representation
+            returnPreference: ReturnPreference.Representation
         ), _token.Object);
 
         Assert.Contains(KeyValuePair.Create("Prefer", "return=representation"), request.Headers);
@@ -655,7 +708,7 @@ public class HsdpRequestFactoryTests
             {
                 new("a", "b", "c", "d")
             },
-            preference: ReturnPreference.Representation
+            returnPreference: ReturnPreference.Representation
         ), _token.Object);
 
         Assert.Contains(KeyValuePair.Create("Prefer", "return=representation"), request.Headers);
