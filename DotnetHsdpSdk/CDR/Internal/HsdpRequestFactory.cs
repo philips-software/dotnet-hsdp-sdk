@@ -8,7 +8,9 @@ using System.Text.Json.Serialization;
 using DotnetHsdpSdk.IAM;
 using DotnetHsdpSdk.Utils;
 using Hl7.Fhir.Model;
+using Hl7.Fhir.Rest;
 using Hl7.Fhir.Serialization;
+using Hl7.Fhir.Utility;
 
 namespace DotnetHsdpSdk.CDR.Internal;
 
@@ -77,19 +79,19 @@ internal class HsdpRequestFactory : IHsdpRequestFactory
         var path = compartment != null
             ? $"{compartment.Type}/{compartment.Id}/{request.ResourceType}"
             : request.ResourceType;
+        var headers = GetHeaders(
+            accessToken: token.AccessToken,
+            searchHandlingPreference: request.HandlingPreference
+        );
         if (request.Method == SearchMethod.Get)
             return new HsdpRequest(HttpMethod.Get, new Uri($"{_cdrEndpoint}/{path}"))
             {
-                Headers = GetHeaders(
-                    token.AccessToken
-                ),
+                Headers = headers,
                 QueryParameters = GetQueryParameters(request.QueryParameters)
             };
         return new HsdpRequest(HttpMethod.Post, new Uri($"{_cdrEndpoint}/{path}/_search"))
         {
-            Headers = GetHeaders(
-                token.AccessToken
-            ),
+            Headers = headers,
             Content = new FormUrlEncodedContent(GetQueryParameters(request.QueryParameters))
         };
     }
@@ -102,7 +104,7 @@ internal class HsdpRequestFactory : IHsdpRequestFactory
                 token.AccessToken,
                 shouldValidate: request.ShouldValidate,
                 condition: request.Condition,
-                preference: request.Preference
+                returnPreference: request.ReturnPreference
             ),
             QueryParameters = GetQueryParameters(),
             Content = ToJsonContent(request.Resource, $"{_mediaType}; fhirVersion={_fhirVersion}")
@@ -115,7 +117,7 @@ internal class HsdpRequestFactory : IHsdpRequestFactory
         {
             Headers = GetHeaders(
                 token.AccessToken,
-                preference: request.Preference
+                returnPreference: request.ReturnPreference
             ),
             QueryParameters = GetQueryParameters(),
             Content = ToJsonContent(request.Bundle, $"{_mediaType}; fhirVersion={_fhirVersion}")
@@ -151,7 +153,7 @@ internal class HsdpRequestFactory : IHsdpRequestFactory
                 token.AccessToken,
                 modifiedSinceVersion: request.ForVersion,
                 shouldValidate: request.ShouldValidate,
-                preference: request.Preference
+                returnPreference: request.ReturnPreference
             ),
             QueryParameters = GetQueryParameters(),
             Content = ToJsonContent(request.Resource, $"{_mediaType}; fhirVersion={_fhirVersion}")
@@ -165,7 +167,7 @@ internal class HsdpRequestFactory : IHsdpRequestFactory
             Headers = GetHeaders(
                 token.AccessToken,
                 modifiedSinceVersion: request.ForVersion,
-                preference: request.Preference
+                returnPreference: request.ReturnPreference
             ),
             QueryParameters = GetQueryParameters(request.QueryParameters),
             Content = ToJsonContent(request.Resource, $"{_mediaType}; fhirVersion={_fhirVersion}")
@@ -180,7 +182,7 @@ internal class HsdpRequestFactory : IHsdpRequestFactory
                 token.AccessToken,
                 matchesVersion: request.ForVersion,
                 shouldValidate: request.ShouldValidate,
-                preference: request.Preference
+                returnPreference: request.ReturnPreference
             ),
             QueryParameters = GetQueryParameters(),
             Content = ToJsonContent(request.Operations, "application/json-patch+json")
@@ -194,7 +196,7 @@ internal class HsdpRequestFactory : IHsdpRequestFactory
             Headers = GetHeaders(
                 token.AccessToken,
                 matchesVersion: request.ForVersion,
-                preference: request.Preference
+                returnPreference: request.ReturnPreference
             ),
             QueryParameters = GetQueryParameters(request.QueryParameters),
             Content = ToJsonContent(request.Operations, "application/json-patch+json")
@@ -208,7 +210,8 @@ internal class HsdpRequestFactory : IHsdpRequestFactory
         string? matchesVersion = null,
         bool? shouldValidate = null,
         string? condition = null,
-        ReturnPreference? preference = null
+        ReturnPreference? returnPreference = null,
+        SearchParameterHandling? searchHandlingPreference = null
     )
     {
         var headers = new List<KeyValuePair<string, string>>
@@ -224,8 +227,10 @@ internal class HsdpRequestFactory : IHsdpRequestFactory
         if (shouldValidate != null)
             headers.Add(KeyValuePair.Create("X-validate-resource", shouldValidate.ToString()!.ToLower()));
         if (condition != null) headers.Add(KeyValuePair.Create("If-None-Exists", condition));
-        if (preference != null)
-            headers.Add(KeyValuePair.Create("Prefer", $"return={preference.ToString()!.ToLower()}"));
+        if (returnPreference != null)
+            headers.Add(KeyValuePair.Create("Prefer", $"return={returnPreference.ToString()!.ToLower()}"));
+        if (searchHandlingPreference != null)
+            headers.Add(KeyValuePair.Create("Prefer", $"handling={searchHandlingPreference.GetLiteral()}"));
 
         return headers;
     }

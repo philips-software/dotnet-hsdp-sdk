@@ -3,6 +3,7 @@ using DotnetHsdpSdk.CDR.Internal;
 using DotnetHsdpSdk.IAM;
 using DotnetHsdpSdk.Utils;
 using Hl7.Fhir.Model;
+using Hl7.Fhir.Rest;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Moq;
 using NUnit.Framework;
@@ -83,7 +84,7 @@ public class HsdpCdrTests
     [Test]
     public async Task SearchShouldReturnACdrSearchResponse()
     {
-        var request = new Mock<CdrSearchRequest>("Observation", SearchMethod.Get, null, null);
+        var request = new Mock<CdrSearchRequest>("Observation", SearchMethod.Get, SearchParameterHandling.Strict, null, null);
         var response = new Mock<CdrSearchResponse>();
         _requestFactory
             .Setup(f => f.Create(request.Object, _token.Object))
